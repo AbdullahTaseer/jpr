@@ -104,6 +104,32 @@ export default function AdminSidebar() {
         <Link href="/">
           <Image src={logoSrc} alt={s.siteName} width={150} height={40} className="h-16 w-auto m-auto" priority unoptimized={!!s.logoUrl} />
         </Link>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={`mt-3 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold border transition-colors ${
+            isLight
+              ? "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+              : "bg-white/5 border-white/10 text-gray-200 hover:bg-white/10"
+          }`}
+          aria-label={isLight ? "Switch to night mode" : "Switch to day mode"}
+        >
+          <span className="flex items-center gap-2">
+            {isLight ? <IcoMoon /> : <IcoSun />}
+            {isLight ? "Night Mode" : "Day Mode"}
+          </span>
+          <span
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              isLight ? "bg-gray-300" : "bg-[#1B6FEB]"
+            }`}
+          >
+            <span
+              className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+                isLight ? "translate-x-1" : "translate-x-4"
+              }`}
+            />
+          </span>
+        </button>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
@@ -147,19 +173,6 @@ export default function AdminSidebar() {
       </nav>
 
       <div className={`px-2 py-3 border-t shrink-0 ${isLight ? "border-gray-200" : "border-white/10"}`}>
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors mb-1 ${
-            isLight
-              ? "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              : "text-[#9ca3af] hover:text-white hover:bg-white/5"
-          }`}
-          aria-label={isLight ? "Switch to night mode" : "Switch to day mode"}
-        >
-          {isLight ? <IcoMoon /> : <IcoSun />}
-          {isLight ? "Night Mode" : "Day Mode"}
-        </button>
         <div className="flex items-center gap-3 px-3 py-2.5 mb-1">
           <div className="w-7 h-7 rounded-full bg-[#1B6FEB]/20 flex items-center justify-center text-[#1B6FEB] text-[10px] font-bold shrink-0">SA</div>
           <div className="flex-1 min-w-0">
