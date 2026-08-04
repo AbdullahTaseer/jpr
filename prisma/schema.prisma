@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  VENDOR
+  ADMIN
+}
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  username    String?  @unique
+  email       String   @unique
+  phone       String?
+  password    String
+  role        Role     @default(USER)
+
+  // Vendor-specific fields
+  companyName String?
+  ein         String?
+  shopName    String?
+  shopSlug    String?  @unique
+
+  // Vendor profile
+  profileImage     String?
+  bannerImage      String?
+  aboutTitle       String?
+  aboutDescription String?
+  aboutCategory    String?
+  aboutSince       DateTime?
+  shopPolicies     String?
+
+  vendorStatus VendorStatus?
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products         Product[]         @relation("VendorProducts")
+  favoriteProducts FavoriteProduct[] @relation("UserFavoriteProducts")
+  favoriteVendors  FavoriteVendor[]  @relation("UserFavoriteVendors")
+  followedBy       FavoriteVendor[]  @relation("VendorFollowers")
+  reviews          Review[]          @relation("UserReviews")
+  shopMembers      ShopMember[]      @relation("VendorMembers")
+  vendorReviews    VendorReview[]    @relation("VendorReviews")
+  reviewsGiven     VendorReview[]    @relation("UserVendorReviews")
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  title        String
+  slug         String   @unique
+  description  String?
+  shortDesc    String?
+  price        Float
+  comparePrice Float?
+  sku          String?
+  stock        Int      @default(0)
+  images       String[]
+  redirectUrl  String?
+  vendorId     String
+  vendor       User      @relation("VendorProducts", fields: [vendorId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId      String?
+  brand        Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  isFeatured   Boolean  @default(false)
+  isNewArrival Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  clicks       ProductClick[]
+  favoritedBy  FavoriteProduct[] @relation("FavoritedProducts")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  slug            String    @unique
+  imageUrl        String?
+  showOnHomepage  Boolean   @default(false)
+  products        Product[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Brand {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  slug            String    @unique
+  logoUrl         String?
+  website         String?
+  showOnHomepage  Boolean   @default(false)
+  products        Product[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model ProductClick {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  source    String?
+  clickedAt DateTime @default(now())
+}
+
+model NewsletterSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  REPLIED
+}
+
+model Inquiry {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    InquiryStatus @default(NEW)
+  createdAt DateTime      @default(now())
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  email     String?
+  bio       String?
+  imageUrl  String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Slider {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  cta       String?
+  ctaLink   String?
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model Blog {
+  id            String     @id @default(cuid())
+  title         String
+  slug          String     @unique
+  excerpt       String?
+  content       String     @default("")
+  category      String     @default("General")
+  author        String     @default("Admin")
+  featuredImage String?
+  status        BlogStatus @default(DRAFT)
+  isFeatured    Boolean    @default(false)
+  readTime      Int?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Review {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation("UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int          @default(5)
+  title     String?
+  body      String
+  status    ReviewStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model FavoriteProduct {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserFavoriteProducts", fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation("FavoritedProducts", fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, productId])
+}
+
+model FavoriteVendor {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserFavoriteVendors", fields: [userId], references: [id], onDelete: Cascade)
+  vendorId  String
+  vendor    User     @relation("VendorFollowers", fields: [vendorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, vendorId])
+}
+
+model ShopMember {
+  id          String   @id @default(cuid())
+  vendorId    String
+  vendor      User     @relation("VendorMembers", fields: [vendorId], references: [id], onDelete: Cascade)
+  name        String
+  designation String?
+  imageUrl    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VendorReview {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    User     @relation("VendorReviews", fields: [vendorId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserVendorReviews", fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      @default(5)
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([vendorId, userId])
+}
+
+model PageContent {
+  id      String @id @default(cuid())
+  page    String
+  section String
+  key     String
+  value   String
+  @@unique([page, section, key])
+}
+
+model FaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                  String   @id @default("default")
+  siteName            String   @default("Latter Day Shopping")
+  tagline             String?
+  logoUrl             String?
+  faviconUrl          String?
+  email               String?
+  phone               String?
+  address             String?
+  facebook            String?
+  twitter             String?
+  instagram           String?
+  pinterest           String?
+  youtube             String?
+  tiktok              String?
+  metaTitle           String?
+  metaDescription     String?
+  googleAnalyticsId   String?
+  announcementEnabled Boolean  @default(false)
+  announcementText    String?
+  announcementBg      String   @default("#1B6FEB")
+  updatedAt           DateTime @updatedAt
+}
