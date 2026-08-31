@@ -210,7 +210,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               
               <p className="text-gray-500 text-xs">
-                © {new Date().getFullYear()} <span className="text-gray-400 font-semibold">{siteName}</span>. All rights reserved. Made with 💜 by <a href="https://leendesignstudio.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Leen Design Studio</a>
+                © {new Date().getFullYear()} <span className="text-gray-400 font-semibold">{siteName}</span>. All rights reserved. Made with 💜 by <a href="https://leendesignstudio.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Leen Design Studios</a>
               </p>
             </div>
             <div className="flex items-center gap-1 flex-wrap justify-center">
