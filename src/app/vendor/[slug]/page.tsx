@@ -441,14 +441,14 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
 
         {/* ════ POLICIES TAB ════ */}
         {tab === "policies" && (
-          <div className="pb-16 max-w-3xl">
+          <div className="pb-16">
             <h2 className="text-gray-900 font-black text-2xl flex items-center gap-2 mb-6">
               <FileText className="w-6 h-6 text-[#1B6FEB]" /> Shop Policies
             </h2>
             {vendor.shopPolicies ? (
               <div className="bg-white border border-gray-100 rounded-2xl p-7 sm:p-10 shadow-sm">
                 <div
-                  className="vendor-policies text-sm leading-relaxed"
+                  className="vendor-policies text-sm leading-relaxed max-w-none"
                   dangerouslySetInnerHTML={{ __html: vendor.shopPolicies }}
                 />
               </div>

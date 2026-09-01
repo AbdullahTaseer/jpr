@@ -22,6 +22,20 @@ export default async function BrandsPage() {
     orderBy: { name: "asc" },
   });
 
+  const vendors = await prisma.user.findMany({
+    where: {
+      role: "VENDOR",
+      vendorStatus: "APPROVED",
+      isActive: true,
+      shopSlug: { not: null },
+      shopName: { in: brands.map((b) => b.name) },
+    },
+    select: { shopName: true, shopSlug: true },
+  });
+  const vendorSlugByBrandName = new Map(
+    vendors.map((v) => [v.shopName as string, v.shopSlug as string])
+  );
+
   return (
     <div className="bg-white">
 
@@ -71,8 +85,10 @@ export default async function BrandsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {brands.map((b, i) => {
             const grad = GRADIENTS[i % GRADIENTS.length];
+            const vendorSlug = vendorSlugByBrandName.get(b.name);
+            const href = vendorSlug ? `/vendor/${vendorSlug}` : `/shop?brandId=${b.id}`;
             return (
-              <Link key={b.id} href={`/shop?brandId=${b.id}`}
+              <Link key={b.id} href={href}
                 className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-2xl hover:border-[#1B6FEB]/20 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden">
 
                 {/* Card header — gradient with logo */}

@@ -14,6 +14,7 @@ type Settings = {
   facebook: string;
   twitter: string;
   instagram: string;
+  linkedin: string;
   pinterest: string;
   youtube: string;
   tiktok: string;
@@ -28,7 +29,7 @@ type Settings = {
 const EMPTY: Settings = {
   siteName: "", tagline: "", logoUrl: "", faviconUrl: "",
   email: "", phone: "", address: "",
-  facebook: "", twitter: "", instagram: "", pinterest: "", youtube: "", tiktok: "",
+  facebook: "", twitter: "", instagram: "", linkedin: "", pinterest: "", youtube: "", tiktok: "",
   metaTitle: "", metaDescription: "", googleAnalyticsId: "",
   announcementEnabled: false, announcementText: "", announcementBg: "#1B6FEB",
 };
@@ -196,6 +197,7 @@ export default function SiteSettingsForm() {
             facebook: raw.facebook ?? "",
             twitter: raw.twitter ?? "",
             instagram: raw.instagram ?? "",
+            linkedin: raw.linkedin ?? "",
             pinterest: raw.pinterest ?? "",
             youtube: raw.youtube ?? "",
             tiktok: raw.tiktok ?? "",
@@ -268,7 +270,7 @@ export default function SiteSettingsForm() {
       {/* Social Media Links */}
       <form onSubmit={e => {
         e.preventDefault();
-        social.save({ facebook: s.facebook, twitter: s.twitter, instagram: s.instagram, pinterest: s.pinterest, youtube: s.youtube, tiktok: s.tiktok });
+        social.save({ facebook: s.facebook, twitter: s.twitter, instagram: s.instagram, linkedin: s.linkedin, pinterest: s.pinterest, youtube: s.youtube, tiktok: s.tiktok });
       }}>
         <Section title="Social Media Links">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -276,6 +278,7 @@ export default function SiteSettingsForm() {
               { key: "facebook",  label: "Facebook",   placeholder: "https://facebook.com/yourpage" },
               { key: "twitter",   label: "Twitter / X", placeholder: "https://x.com/yourhandle" },
               { key: "instagram", label: "Instagram",  placeholder: "https://instagram.com/yourhandle" },
+              { key: "linkedin",  label: "LinkedIn",   placeholder: "https://linkedin.com/company/yourpage" },
               { key: "pinterest", label: "Pinterest",  placeholder: "https://pinterest.com/yourprofile" },
               { key: "youtube",   label: "YouTube",    placeholder: "https://youtube.com/@yourchannel" },
               { key: "tiktok",    label: "TikTok",     placeholder: "https://tiktok.com/@yourhandle" },

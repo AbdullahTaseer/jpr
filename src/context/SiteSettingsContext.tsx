@@ -13,6 +13,7 @@ export type SiteSettingsData = {
     facebook: string | null;
     twitter: string | null;
     instagram: string | null;
+    linkedin: string | null;
     pinterest: string | null;
     youtube: string | null;
     tiktok: string | null;
@@ -35,6 +36,7 @@ const DEFAULTS: SiteSettingsData = {
     facebook: null,
     twitter: null,
     instagram: null,
+    linkedin: null,
     pinterest: null,
     youtube: null,
     tiktok: null,

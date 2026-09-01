@@ -24,7 +24,7 @@ export async function PUT(req: NextRequest) {
     const allowed = [
         "siteName", "tagline", "logoUrl", "faviconUrl",
         "email", "phone", "address",
-        "facebook", "twitter", "instagram", "pinterest", "youtube", "tiktok",
+        "facebook", "twitter", "instagram", "linkedin", "pinterest", "youtube", "tiktok",
         "metaTitle", "metaDescription", "googleAnalyticsId",
         "announcementEnabled", "announcementText", "announcementBg",
     ] as const;

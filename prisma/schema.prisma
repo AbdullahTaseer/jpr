@@ -280,6 +280,7 @@ model SiteSettings {
   facebook            String?
   twitter             String?
   instagram           String?
+  linkedin            String?
   pinterest           String?
   youtube             String?
   tiktok              String?

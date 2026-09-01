@@ -21,9 +21,14 @@ const DEFAULT_TIMELINE = [
 ];
 
 export default async function AboutPage() {
-  const [members, cmsItems] = await Promise.all([
+  const [members, cmsItems, missionProduct] = await Promise.all([
     prisma.teamMember.findMany({ orderBy: { order: "asc" } }),
     prisma.pageContent.findMany({ where: { page: "about" } }),
+    prisma.product.findFirst({
+      where: { isActive: true, isFeatured: false, isNewArrival: false, images: { isEmpty: false } },
+      orderBy: { createdAt: "desc" },
+      select: { images: true },
+    }),
   ]);
 
   const cmsMap: Record<string, string> = {};
@@ -31,8 +36,7 @@ export default async function AboutPage() {
   const c = (section: string, key: string, def: string) => cmsMap[`${section}.${key}`] ?? def;
 
   const heroImage = c("hero", "image", "") || unsplash("1522202176988-66273c7fd55f", 1600, 900);
-  const founderPhoto = members.find(m => /founder|ceo/i.test(m.role))?.imageUrl || members[0]?.imageUrl || "";
-  const missionImage = c("mission", "image", "") || founderPhoto || unsplash("1556742049-0cfed4f6a45d", 800, 1000);
+  const missionImage = c("mission", "image", "") || missionProduct?.images[0] || unsplash("1521737711867-e3b97375f902", 800, 1000);
 
   const values = DEFAULT_VALUES.map((dv, i) => ({
     icon:  c("values", `${i}.icon`,  dv.icon),
@@ -103,14 +107,14 @@ export default async function AboutPage() {
               <Image src={missionImage} fill alt="Mission"
                 className="object-cover" sizes="(max-width:1024px)100vw,50vw" unoptimized={!!cmsMap["mission.image"]} />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
+            {/* <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl p-5 shadow-xl border border-gray-100">
               <p className="font-black text-gray-900 text-sm">Vendor Approved</p>
               <p className="text-gray-400 text-xs mt-0.5">Every seller is manually verified</p>
               <div className="flex items-center gap-1 mt-2">
                 {[1,2,3,4,5].map(i=><span key={i} className="text-amber-400 text-sm">★</span>)}
                 <span className="text-gray-500 text-xs ml-1">4.9/5 platform rating</span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </section>
