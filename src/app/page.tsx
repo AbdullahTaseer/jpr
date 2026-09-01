@@ -85,7 +85,7 @@ type DbProduct = {
   category: { id: string; name: string } | null;
   brand: { id: string; name: string } | null;
 };
-type DbCategory = { id: string; name: string; imageUrl: string | null };
+type DbCategory = { id: string; name: string; imageUrl: string | null; count: number };
 
 function dbToCard(p: DbProduct) {
   return {
@@ -110,13 +110,6 @@ const STATS = [
   { value: "2", label: "Brands We Stand Behind", icon: "⭐" },
 ];
 const FOUNDER_PHOTO = "https://res.cloudinary.com/dre9yontg/image/upload/v1787858294/jpr-uploads/o2rwunmyy91rlixv3as4.jpg";
-
-const TRENDY_SLIDES = [
-  { id: "1529139574466-a303027c1d8b", label: "Spring Collection", tag: "NEW" },
-  { id: "1483985988355-763728e1935b", label: "Summer Sale", tag: "SALE" },
-  { id: "1469334031218-e382a71b716b", label: "Style Gallery", tag: "TRENDING" },
-  { id: "1581044777550-4cfa60707c03", label: "Limited Edition", tag: "HOT" },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function Stars({ n }: { n: number }) {
@@ -276,9 +269,9 @@ function ProductCard({ productId, slug, name, price, oldPrice, img, badge, vendo
 }
 
 // ─── Category Card ────────────────────────────────────────────────────────────
-function CategoryCard({ name, img }: { name: string; img: string }) {
+function CategoryCard({ id, name, img }: { id?: string; name: string; img: string }) {
   return (
-    <Link href="/shop" className="group relative h-48 rounded-3xl overflow-hidden block cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300">
+    <Link href={id ? `/shop?categoryId=${id}` : "/shop"} className="group relative h-48 rounded-3xl overflow-hidden block cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300">
       <Image src={img} fill alt={name}
         className="object-cover group-hover:scale-110 transition-transform duration-700"
         sizes="(max-width:640px)50vw,25vw" />
@@ -308,7 +301,6 @@ export default function Home() {
   const [subscribed, setSubscribed] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
   const [subError, setSubError] = useState("");
-  const [slideIdx, setSlideIdx] = useState(0);
   const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [reviewIdx, setReviewIdx] = useState(0);
   const [featuredProducts, setFeaturedProducts] = useState<DbProduct[]>([]);
@@ -328,15 +320,6 @@ export default function Home() {
   const [heroSlides, setHeroSlides] = useState<string[]>([]);
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroFading, setHeroFading] = useState(false);
-
-  const nextSlide = useCallback(() => setSlideIdx(i => (i + 1) % TRENDY_SLIDES.length), []);
-  const prevSlide = useCallback(() => setSlideIdx(i => (i - 1 + TRENDY_SLIDES.length) % TRENDY_SLIDES.length), []);
-
-  // Auto-advance trendy slider
-  useEffect(() => {
-    const t = setInterval(nextSlide, 4000);
-    return () => clearInterval(t);
-  }, [nextSlide]);
 
   // Fetch CMS content
   useEffect(() => {
@@ -387,7 +370,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/categories?homepage=true").then(r => r.json()).then(d => setPopularCats(d.categories ?? [])).catch(() => {}).finally(() => setLoadingCats(false));
+    fetch("/api/categories?homepage=true").then(r => r.json())
+      .then(d => setPopularCats((d.categories ?? []).map((c: DbCategory & { _count?: { products: number } }) => ({ ...c, count: c._count?.products ?? 0 }))))
+      .catch(() => {}).finally(() => setLoadingCats(false));
   }, []);
 
   // Auto-advance reviews slider
@@ -396,6 +381,22 @@ export default function Home() {
     const t = setInterval(() => setReviewIdx(i => (i + 1) % reviews.length), 5000);
     return () => clearInterval(t);
   }, [reviews.length]);
+
+  // Real collections — categories that actually have products, paired with a real
+  // product photo (not stock imagery) pulled from the products already fetched above.
+  const realCollections = popularCats.filter(cat => cat.count > 0);
+  const collectionThumb = (catName: string) =>
+    [...featuredProducts, ...newArrivals].find(p => p.category?.name === catName)?.images[0];
+  const collectionSlides = featuredProducts.slice(0, 5);
+  const [collectionIdx, setCollectionIdx] = useState(0);
+  const nextCollectionSlide = useCallback(() => setCollectionIdx(i => (i + 1) % Math.max(collectionSlides.length, 1)), [collectionSlides.length]);
+  const prevCollectionSlide = useCallback(() => setCollectionIdx(i => (i - 1 + Math.max(collectionSlides.length, 1)) % Math.max(collectionSlides.length, 1)), [collectionSlides.length]);
+
+  useEffect(() => {
+    if (collectionSlides.length <= 1) return;
+    const t = setInterval(nextCollectionSlide, 4000);
+    return () => clearInterval(t);
+  }, [collectionSlides.length, nextCollectionSlide]);
 
   const handleSubscribe = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -700,53 +701,56 @@ export default function Home() {
         </section>
       )}
 
-     
+
+      {!loadingFeatured && collectionSlides.length > 0 && (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <div className="rounded-[2.5rem] overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
 
-          {/* LEFT — image slider */}
+          {/* LEFT — image slider (real product photos) */}
           <div className="relative overflow-hidden min-h-[320px] lg:min-h-auto">
-            {TRENDY_SLIDES.map((slide, i) => (
-              <div key={slide.id}
-                className={`absolute inset-0 transition-all duration-700 ${i === slideIdx ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}>
-                <Image src={unsplash(slide.id, 900, 700)} fill alt={slide.label}
-                  className="object-cover object-top" sizes="50vw" />
+            {collectionSlides.map((slide, i) => (
+              <Link key={slide.id} href={`/shop/${slide.slug}`}
+                className={`absolute inset-0 transition-all duration-700 ${i === collectionIdx ? "opacity-100 scale-100" : "opacity-0 scale-105"}`}>
+                <Image src={slide.images[0] || HERO_FALLBACK} fill alt={slide.title}
+                  className="object-cover object-top" sizes="50vw" unoptimized />
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#060B17]/50" />
-              </div>
+              </Link>
             ))}
 
             {/* Slide label */}
-            <div className="absolute top-6 left-6 z-10">
-              <div className="glass rounded-xl px-4 py-2 inline-flex items-center gap-2">
-                <span className="w-2 h-2 bg-[#1B6FEB] rounded-full animate-pulse" />
-                <span className="text-gray-800 text-xs font-black">{TRENDY_SLIDES[slideIdx].label}</span>
-                <span className="text-[10px] font-black text-white bg-[#1B6FEB] px-2 py-0.5 rounded-full">{TRENDY_SLIDES[slideIdx].tag}</span>
+            <div className="absolute top-6 left-6 z-10 pointer-events-none">
+              <div className="glass rounded-xl px-4 py-2 inline-flex items-center gap-2 max-w-[85%]">
+                <span className="w-2 h-2 bg-[#1B6FEB] rounded-full animate-pulse flex-shrink-0" />
+                <span className="text-gray-800 text-xs font-black truncate">{collectionSlides[collectionIdx]?.title}</span>
+                {collectionSlides[collectionIdx]?.isNewArrival && (
+                  <span className="text-[10px] font-black text-white bg-[#1B6FEB] px-2 py-0.5 rounded-full flex-shrink-0">NEW</span>
+                )}
               </div>
             </div>
 
             {/* Slide number */}
             <div className="absolute top-6 right-6 z-10 glass rounded-lg px-3 py-1.5">
-              <span className="text-gray-700 text-xs font-black">{String(slideIdx + 1).padStart(2, "0")}</span>
-              <span className="text-gray-400 text-xs"> / {String(TRENDY_SLIDES.length).padStart(2, "0")}</span>
+              <span className="text-gray-700 text-xs font-black">{String(collectionIdx + 1).padStart(2, "0")}</span>
+              <span className="text-gray-400 text-xs"> / {String(collectionSlides.length).padStart(2, "0")}</span>
             </div>
 
             {/* Prev / Next arrows */}
-            <button onClick={prevSlide}
+            <button onClick={prevCollectionSlide}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-xl text-gray-800 transition-all hover:scale-110">
               <IcoChevLeft />
             </button>
-            <button onClick={nextSlide}
+            <button onClick={nextCollectionSlide}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-xl text-gray-800 transition-all hover:scale-110">
               <IcoChevRight />
             </button>
 
             {/* Dots */}
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-              {TRENDY_SLIDES.map((_, i) => (
-                <button key={i} onClick={() => setSlideIdx(i)}
-                  className={`rounded-full transition-all duration-300 ${i === slideIdx ? "w-7 h-2.5 bg-white" : "w-2.5 h-2.5 bg-white/50 hover:bg-white/75"}`} />
+              {collectionSlides.map((_, i) => (
+                <button key={i} onClick={() => setCollectionIdx(i)}
+                  className={`rounded-full transition-all duration-300 ${i === collectionIdx ? "w-7 h-2.5 bg-white" : "w-2.5 h-2.5 bg-white/50 hover:bg-white/75"}`} />
               ))}
             </div>
           </div>
@@ -754,36 +758,31 @@ export default function Home() {
           {/* RIGHT — content */}
           <div className="bg-gradient-to-br from-[#060B17] via-[#0C1B40] to-[#1A3680] p-10 lg:p-14 flex flex-col justify-center">
             <div className="inline-flex w-fit bg-white/10 border border-white/15 text-white/80 text-[11px] font-black tracking-[0.2em] uppercase px-4 py-1.5 rounded-full mb-6">
-              {c("trendy", "badge", "FASHION COLLECTION")}
+              {c("trendy", "badge", "CURATED BY CATEGORY")}
             </div>
 
             <h2 className="font-display font-black text-white text-4xl lg:text-5xl leading-[1.05] mb-4">
-              {c("trendy", "heading1", "Shop Trendy")}<br />
-              <span className="italic text-gradient">{c("trendy", "heading2", "Fashion")}</span>
+              {c("trendy", "heading1", "Shop by")}<br />
+              <span className="italic text-gradient">{c("trendy", "heading2", "Collection")}</span>
             </h2>
 
             <p className="text-white/55 text-sm leading-relaxed mb-8 max-w-sm">
-              {c("trendy", "subtext", "Discover fashion that blends style with purpose. Designed for everyday wear without compromising on intention or quality.")}
+              {c("trendy", "subtext", "From long-shelf-life emergency food storage to small-batch honey and jelly — every collection here is built from real products, made by real makers.")}
             </p>
 
-            {/* Sub-category thumbnails with real images */}
+            {/* Real collections — only categories that actually have products */}
             <div className="grid grid-cols-2 gap-3 mb-8">
-              {[
-                { label: "Hats & Caps", img: unsplash("1534351590666-13e3e96b5017", 300, 200), count: "240+" },
-                { label: "Footwear", img: unsplash("1542291026-7eec264c27ff", 300, 200), count: "380+" },
-                { label: "Jewelry", img: unsplash("1515562141207-7a88fb7ce338", 300, 200), count: "150+" },
-                { label: "Scarves & Wraps", img: unsplash("1601924994987-69e26d50dc26", 300, 200), count: "90+" },
-              ].map(item => (
-                <div key={item.label}
+              {realCollections.map(cat => (
+                <Link key={cat.id} href={`/shop?categoryId=${cat.id}`}
                   className="group relative h-20 rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-[#1B6FEB]/60 transition-all duration-300">
-                  <Image src={item.img} fill alt={item.label}
-                    className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="160px" />
+                  <Image src={collectionThumb(cat.name) || cat.imageUrl || HERO_FALLBACK} fill alt={cat.name}
+                    className="object-cover group-hover:scale-110 transition-transform duration-500" sizes="160px" unoptimized />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute inset-0 flex flex-col justify-end p-2.5">
-                    <span className="text-white text-xs font-bold">{item.label}</span>
-                    <span className="text-white/60 text-[10px]">{item.count} items</span>
+                    <span className="text-white text-xs font-bold">{cat.name}</span>
+                    <span className="text-white/60 text-[10px]">{cat.count} items</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
 
@@ -792,14 +791,15 @@ export default function Home() {
                 className="inline-flex items-center gap-2.5 bg-white text-[#1B6FEB] font-black px-7 py-3.5 rounded-full hover:bg-blue-50 transition-all shadow-xl hover:-translate-y-0.5 text-sm">
                 {c("trendy", "ctaText", "SHOP ALL COLLECTION")} <IcoArrow />
               </Link>
-              <span className="text-white/40 text-sm">{c("trendy", "ctaSub", "50,000+ styles")}</span>
+              <span className="text-white/40 text-sm">{c("trendy", "ctaSub", "Real products from real vendors")}</span>
             </div>
           </div>
         </div>
       </section>
+      )}
 
   
-      {(loadingCats || popularCats.length > 0) && (
+      {(loadingCats || popularCats.some(cat => cat.count > 0)) && (
         <section className="py-24 bg-gray-50/70">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
@@ -812,8 +812,8 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {loadingCats
                 ? Array.from({ length: 4 }).map((_, i) => <CategoryCardSkeleton key={i} />)
-                : popularCats.map(cat => (
-                    <CategoryCard key={cat.id} name={cat.name} img={cat.imageUrl || unsplash("1483985988355-763728e1935b", 600, 440)} />
+                : popularCats.filter(cat => cat.count > 0).map(cat => (
+                    <CategoryCard key={cat.id} id={cat.id} name={cat.name} img={cat.imageUrl || unsplash("1483985988355-763728e1935b", 600, 440)} />
                   ))
               }
             </div>

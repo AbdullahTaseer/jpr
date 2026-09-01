@@ -226,15 +226,16 @@ export default function ContentHomePage() {
                 </Grid2>
             </Section>
 
-            {/* ── Trendy Fashion ── */}
-            <Section title="Trendy Fashion Section" onSave={() => saveSection("trendy")} saving={saving}>
+            {/* ── Collections ── */}
+            <Section title="Collections Section" onSave={() => saveSection("trendy")} saving={saving}>
+                <p className="text-[#6b7280] text-sm -mt-2">The image slider and category tiles pull live from real products and categories — only the text below is editable.</p>
                 <Grid2>
-                    <Field label="Badge Text"><input value={get("trendy","badge","FASHION COLLECTION")} onChange={e=>set("trendy","badge",e.target.value)} className={inp}/></Field>
-                    <Field label="Heading Line 1"><input value={get("trendy","heading1","Shop Trendy")} onChange={e=>set("trendy","heading1",e.target.value)} className={inp}/></Field>
-                    <Field label="Heading Line 2 (italic)"><input value={get("trendy","heading2","Fashion")} onChange={e=>set("trendy","heading2",e.target.value)} className={inp}/></Field>
-                    <Field label="Body Text"><textarea rows={2} value={get("trendy","subtext","Discover fashion that blends style with purpose.")} onChange={e=>set("trendy","subtext",e.target.value)} className={area}/></Field>
+                    <Field label="Badge Text"><input value={get("trendy","badge","CURATED BY CATEGORY")} onChange={e=>set("trendy","badge",e.target.value)} className={inp}/></Field>
+                    <Field label="Heading Line 1"><input value={get("trendy","heading1","Shop by")} onChange={e=>set("trendy","heading1",e.target.value)} className={inp}/></Field>
+                    <Field label="Heading Line 2 (italic)"><input value={get("trendy","heading2","Collection")} onChange={e=>set("trendy","heading2",e.target.value)} className={inp}/></Field>
+                    <Field label="Body Text"><textarea rows={2} value={get("trendy","subtext","From long-shelf-life emergency food storage to small-batch honey and jelly — every collection here is built from real products, made by real makers.")} onChange={e=>set("trendy","subtext",e.target.value)} className={area}/></Field>
                     <Field label="CTA Button Text"><input value={get("trendy","ctaText","SHOP ALL COLLECTION")} onChange={e=>set("trendy","ctaText",e.target.value)} className={inp}/></Field>
-                    <Field label="CTA Sub-label"><input value={get("trendy","ctaSub","50,000+ styles")} onChange={e=>set("trendy","ctaSub",e.target.value)} className={inp}/></Field>
+                    <Field label="CTA Sub-label"><input value={get("trendy","ctaSub","Real products from real vendors")} onChange={e=>set("trendy","ctaSub",e.target.value)} className={inp}/></Field>
                 </Grid2>
             </Section>
 
