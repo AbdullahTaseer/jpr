@@ -14,10 +14,10 @@ const DEFAULT_VALUES = [
 ];
 
 const DEFAULT_TIMELINE = [
-  { year: "2022", title: "The Idea",          desc: "Frustrated by a marketplace full of mass-produced goods, our founder imagined a space built around purpose and people." },
-  { year: "2023", title: "Building the Dream",desc: "A small team of 4 spent a year building the platform, vetting the first 50 vendors, and refining the community guidelines." },
-  { year: "2024", title: "Launch Day",        desc: "Latter Day Shopping launched to the public with 50 vendors and 1,200 curated products. 10,000 shoppers signed up in the first month." },
-  { year: "2026", title: "Growing Together",  desc: "Today we host 10,000+ vendors, 50,000+ products, and serve 200,000+ conscious shoppers worldwide." },
+  { year: "2008", title: "Established", desc: "Our story began in 2008 — building businesses rooted in preparedness, quality, and products families can trust." },
+  { year: "Two Brands", title: "Emergency Essentials", desc: "Emergency Essentials / BePrepared is one of our two businesses: food storage, kits, and emergency preparedness supplies." },
+  { year: "Two Brands", title: "Secret Garden Bees", desc: "Secret Garden Bees, an NC Veteran Farm, is our second business — honey and farm goods produced with care." },
+  { year: "Today", title: "One Marketplace", desc: "Latter Day Shopping is home to those two businesses. We are not a marketplace of thousands of vendors — just two focused brands, side by side." },
 ];
 
 export default async function AboutPage() {
@@ -31,7 +31,8 @@ export default async function AboutPage() {
   const c = (section: string, key: string, def: string) => cmsMap[`${section}.${key}`] ?? def;
 
   const heroImage = c("hero", "image", "") || unsplash("1522202176988-66273c7fd55f", 1600, 900);
-  const missionImage = c("mission", "image", "") || unsplash("1556742049-0cfed4f6a45d", 800, 1000);
+  const founderPhoto = members.find(m => /founder|ceo/i.test(m.role))?.imageUrl || members[0]?.imageUrl || "";
+  const missionImage = c("mission", "image", "") || founderPhoto || unsplash("1556742049-0cfed4f6a45d", 800, 1000);
 
   const values = DEFAULT_VALUES.map((dv, i) => ({
     icon:  c("values", `${i}.icon`,  dv.icon),
@@ -81,13 +82,13 @@ export default async function AboutPage() {
               {c("mission", "para1", "Latter Day Shopping was born from a simple but powerful idea: what if shopping could feel good — not just for you, but for the planet and the people behind every product?")}
             </p>
             <p className="text-gray-500 text-base leading-relaxed mb-8">
-              {c("mission", "para2", "We carefully vet every vendor on our platform, ensuring that each product meets our standards for quality, sustainability, and intentional design. When you shop here, you know exactly where your money is going.")}
+              {c("mission", "para2", "We operate two businesses — Emergency Essentials and Secret Garden Bees. Every product on this site comes from those brands, so you always know where your money is going.")}
             </p>
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-gray-100">
               {[
-                { v: c("mission", "stat0.value", "10K+"),  l: c("mission", "stat0.label", "Vendors") },
-                { v: c("mission", "stat1.value", "50K+"),  l: c("mission", "stat1.label", "Products") },
-                { v: c("mission", "stat2.value", "200K+"), l: c("mission", "stat2.label", "Shoppers") },
+                { v: c("mission", "stat0.value", "2"),     l: c("mission", "stat0.label", "Businesses") },
+                { v: c("mission", "stat1.value", "100+"),  l: c("mission", "stat1.label", "Products") },
+                { v: c("mission", "stat2.value", "2008"),  l: c("mission", "stat2.label", "Established") },
               ].map(s => (
                 <div key={s.l} className="text-center">
                   <p className="font-display font-black text-3xl text-[#1B6FEB]">{s.v}</p>
@@ -160,45 +161,79 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      {/* ── Team ── */}
+      {/* ── Founder ── */}
       {members.length > 0 && (
         <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
-              <span className="text-[#1B6FEB] text-xs font-black uppercase tracking-[0.25em]">The People</span>
-              <h2 className="font-display font-black text-5xl text-gray-900 mt-3 mb-4">Meet Our Team</h2>
+              <span className="text-[#1B6FEB] text-xs font-black uppercase tracking-[0.25em]">The Founder</span>
+              <h2 className="font-display font-black text-5xl text-gray-900 mt-3 mb-4">
+                {members.length === 1 ? "Meet Our Founder" : "Meet Our Team"}
+              </h2>
               <p className="text-gray-500 max-w-md mx-auto text-sm leading-relaxed">
-                A small, passionate team on a big mission to change the way the world shops.
+                {members.length === 1
+                  ? "The person behind Latter Day Shopping and our two businesses."
+                  : "A small, passionate team on a big mission to change the way the world shops."}
               </p>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-              {members.map((m) => (
-                <div key={m.id} className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-gray-100">
-                  <div className="relative h-64 overflow-hidden bg-gray-100">
-                    {m.imageUrl ? (
-                      <Image src={m.imageUrl} fill alt={m.name}
-                        className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width:640px)50vw,25vw" unoptimized />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1B6FEB]/10 to-[#1B6FEB]/20">
-                        <span className="text-[#1B6FEB] font-black text-6xl opacity-30">{m.name.charAt(0)}</span>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1B6FEB]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {members.length === 1 ? (
+              <div className="max-w-3xl mx-auto">
+                {members.map((m) => (
+                  <div key={m.id} className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-100 md:flex">
+                    <div className="relative h-80 md:min-h-[360px] md:w-80 flex-shrink-0 bg-gray-100">
+                      {m.imageUrl ? (
+                        <Image src={m.imageUrl} fill alt={m.name}
+                          className="object-cover object-top"
+                          sizes="(max-width:768px)100vw,320px" unoptimized />
+                      ) : (
+                        <div className="w-full h-full min-h-80 flex items-center justify-center bg-gradient-to-br from-[#1B6FEB]/10 to-[#1B6FEB]/20">
+                          <span className="text-[#1B6FEB] font-black text-6xl opacity-30">{m.name.charAt(0)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-8 md:p-10 flex flex-col justify-center">
+                      <h3 className="font-display font-black text-gray-900 text-2xl">{m.name}</h3>
+                      <p className="text-[#1B6FEB] text-sm font-bold mt-1 mb-4">{m.role}</p>
+                      {m.bio && <p className="text-gray-500 text-sm leading-relaxed">{m.bio}</p>}
+                      {m.email && (
+                        <a href={`mailto:${m.email}`} className="text-[#1B6FEB] text-sm mt-5 font-semibold hover:underline truncate">
+                          {m.email}
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-black text-gray-900 text-sm">{m.name}</h3>
-                    <p className="text-[#1B6FEB] text-xs font-bold mt-0.5 mb-2">{m.role}</p>
-                    {m.bio && <p className="text-gray-400 text-xs leading-relaxed">{m.bio}</p>}
-                    {m.email && (
-                      <a href={`mailto:${m.email}`} className="text-[#1B6FEB]/60 text-xs mt-2 block hover:text-[#1B6FEB] transition-colors truncate">
-                        {m.email}
-                      </a>
-                    )}
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 min-[470px]:grid-cols-2 lg:grid-cols-4 gap-6">
+                {members.map((m) => (
+                  <div key={m.id} className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-gray-100">
+                    <div className="relative h-80 min-[470px]:h-64 overflow-hidden bg-gray-100">
+                      {m.imageUrl ? (
+                        <Image src={m.imageUrl} fill alt={m.name}
+                          className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width:640px)50vw,25vw" unoptimized />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1B6FEB]/10 to-[#1B6FEB]/20">
+                          <span className="text-[#1B6FEB] font-black text-6xl opacity-30">{m.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1B6FEB]/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-black text-gray-900 text-sm">{m.name}</h3>
+                      <p className="text-[#1B6FEB] text-xs font-bold mt-0.5 mb-2">{m.role}</p>
+                      {m.bio && <p className="text-gray-400 text-xs leading-relaxed">{m.bio}</p>}
+                      {m.email && (
+                        <a href={`mailto:${m.email}`} className="text-[#1B6FEB]/60 text-xs mt-2 block hover:text-[#1B6FEB] transition-colors truncate">
+                          {m.email}
+                        </a>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -224,4 +259,4 @@ export default async function AboutPage() {
       </section>
     </div>
   );
-}
+};

@@ -31,16 +31,15 @@ export default function NewArrivalsGrid({ products }: { products: Product[] }) {
             href={`/shop/${p.slug}`}
             className="group bg-white rounded-3xl overflow-hidden border border-gray-100 hover:border-[#1B6FEB]/20 hover:shadow-2xl hover:shadow-[#1B6FEB]/08 hover:-translate-y-1.5 transition-all duration-400"
           >
-            <div className="relative h-56 overflow-hidden bg-gray-50">
+            <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl bg-white">
               <Image
                 src={img}
                 fill
                 alt={p.title}
-                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                className="object-cover rounded-t-3xl group-hover:scale-105 transition-transform duration-500"
                 sizes="(max-width:640px)50vw,(max-width:1024px)33vw,25vw"
                 unoptimized={!img.includes("unsplash.com")}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-3 left-3 flex gap-1.5">
                 <span className="text-[10px] font-black px-2.5 py-1 rounded-full text-white bg-emerald-500">NEW</span>
                 {disc && <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-400 text-white">-{disc}%</span>}
@@ -74,4 +73,4 @@ export default function NewArrivalsGrid({ products }: { products: Product[] }) {
       })}
     </div>
   );
-}
+};

@@ -306,12 +306,11 @@ function ShopInner() {
                   const vendorLabel = p.vendor.shopName || p.vendor.name;
                   return (
                     <Link key={p.id} href={`/shop/${p.slug}`} className="group bg-white rounded-3xl overflow-hidden border border-gray-100 hover:border-[#1B6FEB]/20 hover:shadow-2xl hover:shadow-[#1B6FEB]/08 hover:-translate-y-1.5 transition-all duration-400">
-                      <div className="relative h-52 overflow-hidden bg-gray-50">
+                      <div className="relative aspect-[5/4] overflow-hidden rounded-t-3xl bg-white">
                         <Image src={img} fill alt={p.title}
-                          className="object-cover group-hover:scale-110 transition-transform duration-700"
+                          className="object-cover rounded-t-3xl group-hover:scale-105 transition-transform duration-500"
                           sizes="(max-width:640px)50vw,(max-width:1280px)33vw,25vw"
                           unoptimized={!img.includes("unsplash.com")} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute top-3 left-3 flex gap-1.5">
                           {badge && <span className={`text-[10px] font-black px-2.5 py-1 rounded-full text-white ${badgeColor}`}>{badge}</span>}
                           {disc && <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-400 text-white">-{disc}%</span>}
@@ -353,8 +352,8 @@ function ShopInner() {
                   const vendorLabel = p.vendor.shopName || p.vendor.name;
                   return (
                     <Link key={p.id} href={`/shop/${p.slug}`} className="group bg-white rounded-2xl border border-gray-100 hover:border-[#1B6FEB]/20 hover:shadow-lg transition-all duration-300 flex overflow-hidden">
-                      <div className="relative w-36 h-36 flex-shrink-0 overflow-hidden">
-                        <Image src={img} fill alt={p.title} className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="144px"
+                      <div className="relative w-36 h-36 flex-shrink-0 overflow-hidden rounded-l-2xl bg-white">
+                        <Image src={img} fill alt={p.title} className="object-cover rounded-l-2xl group-hover:scale-105 transition-transform duration-500" sizes="144px"
                           unoptimized={!img.includes("unsplash.com")} />
                         {badge && (
                           <div className="absolute top-2 left-2">
@@ -403,4 +402,4 @@ export default function ShopPage() {
       <ShopInner />
     </Suspense>
   );
-}
+};

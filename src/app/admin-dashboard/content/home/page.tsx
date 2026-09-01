@@ -169,7 +169,7 @@ export default function ContentHomePage() {
             <Section title="Hero Section" onSave={() => saveSection("hero")} saving={saving}>
                 <Grid2>
                     <Field label="Label (above headline)">
-                        <input value={get("hero","label","Multi-Vendor Marketplace")} onChange={e=>set("hero","label",e.target.value)} className={inp} />
+                        <input value={get("hero","label","Two Businesses. One Shop.")} onChange={e=>set("hero","label",e.target.value)} className={inp} />
                     </Field>
                     <Field label="Headline Line 1">
                         <input value={get("hero","headline1","Discover &")} onChange={e=>set("hero","headline1",e.target.value)} className={inp} />
@@ -208,7 +208,7 @@ export default function ContentHomePage() {
             {/* ── Hero Stats ── */}
             <Section title="Hero Stats (3 counters)" onSave={() => saveSection("stats")} saving={saving}>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {[{k:"0",dv:"10K+",dl:"Vendors"},{k:"1",dv:"50K+",dl:"Products"},{k:"2",dv:"200K+",dl:"Customers"}].map(s=>(
+                    {[{k:"0",dv:"2",dl:"Businesses"},{k:"1",dv:"100+",dl:"Products"},{k:"2",dv:"2008",dl:"Established"}].map(s=>(
                         <div key={s.k} className="bg-[#242424] rounded-xl p-4 space-y-2">
                             <p className="text-[#6b7280] text-xs font-semibold uppercase tracking-wide">Stat {+s.k+1}</p>
                             <Field label="Value"><input value={get("stats",`${s.k}.value`,s.dv)} onChange={e=>set("stats",`${s.k}.value`,e.target.value)} className={inp}/></Field>
@@ -260,7 +260,7 @@ export default function ContentHomePage() {
                     <Field label="Badge Text"><input value={get("vendor_cta","badge","FOR VENDORS")} onChange={e=>set("vendor_cta","badge",e.target.value)} className={inp}/></Field>
                     <Field label="Heading Line 1"><input value={get("vendor_cta","heading1","Grow Your")} onChange={e=>set("vendor_cta","heading1",e.target.value)} className={inp}/></Field>
                     <Field label="Heading Line 2 (gold italic)"><input value={get("vendor_cta","heading2","Business With Us.")} onChange={e=>set("vendor_cta","heading2",e.target.value)} className={inp}/></Field>
-                    <Field label="Body Text"><textarea rows={3} value={get("vendor_cta","body","Join thousands of vendors who trust our platform.")} onChange={e=>set("vendor_cta","body",e.target.value)} className={area}/></Field>
+                    <Field label="Body Text"><textarea rows={3} value={get("vendor_cta","body","Latter Day Shopping is home to two businesses we know and stand behind.")} onChange={e=>set("vendor_cta","body",e.target.value)} className={area}/></Field>
                     <Field label="CTA Button Text"><input value={get("vendor_cta","ctaText","BECOME A VENDOR")} onChange={e=>set("vendor_cta","ctaText",e.target.value)} className={inp}/></Field>
                 </Grid2>
 
@@ -270,7 +270,7 @@ export default function ContentHomePage() {
                         {k:"0",dt:"Quick & easy vendor registration",ds:"Get started in under 10 minutes"},
                         {k:"1",dt:"Admin approval within 24 hours",ds:"Fast-tracked onboarding process"},
                         {k:"2",dt:"Add unlimited products to your store",ds:"No listing caps, ever"},
-                        {k:"3",dt:"Reach thousands of conscious shoppers",ds:"200K+ active buyers"},
+                        {k:"3",dt:"Reach shoppers who buy with intention",ds:"A focused audience, not a mass marketplace"},
                     ].map(b=>(
                         <div key={b.k} className="bg-[#242424] rounded-xl p-3 space-y-2">
                             <Field label={`Bullet ${+b.k+1} — Main Text`}><input value={get("vendor_cta",`bullet${b.k}.text`,b.dt)} onChange={e=>set("vendor_cta",`bullet${b.k}.text`,e.target.value)} className={inp}/></Field>
@@ -282,10 +282,10 @@ export default function ContentHomePage() {
                 <p className="text-[#6b7280] text-xs font-semibold uppercase tracking-wide mt-2">Stats Grid (4 cards)</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                        {k:"0",di:"🏪",dv:"10K+",dl:"Active Vendors"},
-                        {k:"1",di:"📦",dv:"50K+",dl:"Products Listed"},
-                        {k:"2",di:"😊",dv:"200K+",dl:"Happy Customers"},
-                        {k:"3",di:"⭐",dv:"99%",dl:"Satisfaction Rate"},
+                        {k:"0",di:"🏪",dv:"2",dl:"Businesses"},
+                        {k:"1",di:"📦",dv:"100+",dl:"Products Listed"},
+                        {k:"2",di:"📅",dv:"2008",dl:"Established"},
+                        {k:"3",di:"⭐",dv:"2",dl:"Brands We Stand Behind"},
                     ].map(s=>(
                         <div key={s.k} className="bg-[#242424] rounded-xl p-3 space-y-2">
                             <p className="text-[#6b7280] text-[11px] font-semibold">Card {+s.k+1}</p>
@@ -298,8 +298,8 @@ export default function ContentHomePage() {
 
                 <p className="text-[#6b7280] text-xs font-semibold uppercase tracking-wide mt-2">Vendor Testimonial</p>
                 <Grid2>
-                    <Field label="Quote Text"><textarea rows={2} value={get("vendor_cta","quote","\"Sales tripled within 3 months. The platform's reach is unmatched.\"")} onChange={e=>set("vendor_cta","quote",e.target.value)} className={area}/></Field>
-                    <Field label="Attribution (name + title)"><input value={get("vendor_cta","quoteName","Sarah M. — Verified Vendor")} onChange={e=>set("vendor_cta","quoteName",e.target.value)} className={inp}/></Field>
+                    <Field label="Quote Text"><textarea rows={2} value={get("vendor_cta","quote","\"We built Latter Day Shopping around two businesses we know and stand behind.\"")} onChange={e=>set("vendor_cta","quote",e.target.value)} className={area}/></Field>
+                    <Field label="Attribution (name + title)"><input value={get("vendor_cta","quoteName","John-Paul Register — Founder")} onChange={e=>set("vendor_cta","quoteName",e.target.value)} className={inp}/></Field>
                 </Grid2>
             </Section>
 

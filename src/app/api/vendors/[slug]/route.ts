@@ -39,9 +39,25 @@ export async function GET(
 
     if (!vendor) return NextResponse.json({ error: "Vendor not found" }, { status: 404 });
 
+    const brand = await prisma.brand.findFirst({
+        where: {
+            OR: [
+                { slug },
+                ...(vendor.shopName ? [{ name: vendor.shopName }] : []),
+            ],
+        },
+        select: { logoUrl: true },
+    });
+
     const avgRating = vendor.vendorReviews.length
         ? vendor.vendorReviews.reduce((s, r) => s + r.rating, 0) / vendor.vendorReviews.length
         : null;
 
-    return NextResponse.json({ vendor: { ...vendor, avgRating } });
-}
+    return NextResponse.json({
+        vendor: {
+            ...vendor,
+            avgRating,
+            brandLogo: brand?.logoUrl ?? null,
+        },
+    });
+};

@@ -21,7 +21,7 @@ export default async function ProductDetailPage({
     include: {
       vendor:   { select: { name: true, shopName: true, shopSlug: true, role: true, profileImage: true, vendorReviews: { select: { rating: true } } } },
       category: { select: { id: true, name: true } },
-      brand:    { select: { id: true, name: true } },
+      brand:    { select: { id: true, name: true, logoUrl: true } },
     },
   });
 
@@ -37,6 +37,7 @@ export default async function ProductDetailPage({
   const avgRating   = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null;
   const isUnsplash  = (u: string) => u.includes("unsplash.com");
   const initials    = vendorName.split(" ").slice(0, 2).map((w: string) => w[0]).join("").toUpperCase();
+  const vendorAvatar = product.vendor.profileImage || product.brand?.logoUrl || null;
 
   return (
     <div className="bg-white min-h-screen">
@@ -60,12 +61,12 @@ export default async function ProductDetailPage({
 
           {/* ── Images ── */}
           <div className="space-y-4">
-            <div className="relative h-[460px] rounded-3xl overflow-hidden bg-gray-50 border border-gray-100">
+            <div className="relative h-[460px] rounded-3xl overflow-hidden bg-white border border-gray-100">
               <Image
                 src={mainImg}
                 fill
                 alt={product.title}
-                className="object-cover"
+                className="object-contain p-6"
                 sizes="(max-width:1024px)100vw,50vw"
                 unoptimized={!isUnsplash(mainImg)}
                 priority
@@ -85,9 +86,9 @@ export default async function ProductDetailPage({
             {thumbs.length > 0 && (
               <div className="flex gap-3 flex-wrap">
                 {thumbs.map((img, i) => (
-                  <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-50 border-2 border-gray-100 hover:border-[#1B6FEB] transition-colors flex-shrink-0">
+                  <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white border-2 border-gray-100 hover:border-[#1B6FEB] transition-colors flex-shrink-0">
                     <Image src={img} fill alt={`${product.title} view ${i + 2}`}
-                      className="object-cover" sizes="80px" unoptimized={!isUnsplash(img)} />
+                      className="object-contain p-1.5" sizes="80px" unoptimized={!isUnsplash(img)} />
                   </div>
                 ))}
               </div>
@@ -126,9 +127,9 @@ export default async function ProductDetailPage({
               <Link href={`/vendor/${vendorSlug}`}
                 className="inline-flex items-center gap-3 mb-6 group bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-[#1B6FEB]/30 rounded-2xl px-4 py-2.5 transition-all duration-200">
                 <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-[#1B3A8A] flex-shrink-0 border border-gray-200">
-                  {product.vendor.profileImage ? (
-                    <Image src={product.vendor.profileImage} fill alt={vendorName}
-                      className="object-cover" sizes="36px" unoptimized />
+                  {vendorAvatar ? (
+                    <Image src={vendorAvatar} fill alt={vendorName}
+                      className="object-contain p-0.5 bg-white" sizes="36px" unoptimized />
                   ) : (
                     <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-black">{initials}</span>
                   )}
@@ -234,4 +235,4 @@ export default async function ProductDetailPage({
       </section>
     </div>
   );
-}
+};

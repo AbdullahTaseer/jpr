@@ -3,6 +3,20 @@
 type DataPoint = { month: string; clicks: number };
 interface Props { data?: DataPoint[]; loading?: boolean }
 
+function scaleMax(max: number): number {
+  if (max <= 0) return 4;
+  if (max <= 10) return Math.max(4, Math.ceil(max / 4) * 4);
+  if (max <= 50) return Math.ceil(max / 10) * 10;
+  if (max <= 100) return Math.ceil(max / 20) * 20;
+  if (max <= 1000) return Math.ceil(max / 100) * 100;
+  return Math.ceil(max / 1000) * 1000;
+}
+
+function formatTick(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+}
+
 export default function ReferralBarChart({ data = [], loading }: Props) {
   const W = 700;
   const H = 220;
@@ -12,7 +26,7 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
 
   const hasData = data.length > 0;
   const max = hasData ? Math.max(...data.map(d => d.clicks)) : 0;
-  const ceil = max > 0 ? Math.ceil(max / 1000) * 1000 || 1000 : 1000;
+  const ceil = scaleMax(max);
   const ticks = [0, ceil * 0.25, ceil * 0.5, ceil * 0.75, ceil];
   const barW = hasData ? (chartW / data.length) * 0.5 : 40;
   const barGap = hasData ? chartW / data.length : 80;
@@ -38,7 +52,7 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
                 <g key={tick}>
                   <line x1={pad.left} y1={y} x2={W - pad.right} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
                   <text x={pad.left - 8} y={y + 4} textAnchor="end" fill="#6b7280" fontSize="11" fontFamily="Inter, sans-serif">
-                    {tick >= 1000 ? `${(tick / 1000).toFixed(1)}k` : tick}
+                    {formatTick(tick)}
                   </text>
                 </g>
               );
@@ -49,10 +63,17 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
               const y = pad.top + chartH - barH;
               return (
                 <g key={d.month}>
-                  <rect x={x} y={pad.top + chartH} width={barW} height={0} fill="#1B6FEB" rx="5" className="transition-all duration-700">
-                    <animate attributeName="height" from="0" to={barH} dur="0.6s" begin={`${i * 0.08}s`} fill="freeze" />
-                    <animate attributeName="y" from={pad.top + chartH} to={y} dur="0.6s" begin={`${i * 0.08}s`} fill="freeze" />
-                  </rect>
+                  {d.clicks > 0 && (
+                    <rect x={x} y={pad.top + chartH} width={barW} height={0} fill="#1B6FEB" rx="5" className="transition-all duration-700">
+                      <animate attributeName="height" from="0" to={barH} dur="0.6s" begin={`${i * 0.08}s`} fill="freeze" />
+                      <animate attributeName="y" from={pad.top + chartH} to={y} dur="0.6s" begin={`${i * 0.08}s`} fill="freeze" />
+                    </rect>
+                  )}
+                  {d.clicks > 0 && (
+                    <text x={x + barW / 2} y={Math.max(y - 6, 12)} textAnchor="middle" fill="#9ca3af" fontSize="10" fontFamily="Inter, sans-serif">
+                      {d.clicks}
+                    </text>
+                  )}
                   <text x={x + barW / 2} y={H - 8} textAnchor="middle" fill="#6b7280" fontSize="11" fontFamily="Inter, sans-serif">
                     {d.month}
                   </text>
@@ -64,4 +85,4 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
       )}
     </div>
   );
-}
+};

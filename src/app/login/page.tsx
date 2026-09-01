@@ -81,7 +81,7 @@ export default function LoginPage() {
 
           {/* Stats row */}
           <div className="flex gap-8">
-            {[["10K+", "Vendors"], ["50K+", "Products"], ["200K+", "Customers"]].map(([n, l]) => (
+            {[["2", "Businesses"], ["2008", "Established"], ["100+", "Products"]].map(([n, l]) => (
               <div key={l}>
                 <p className="text-white text-2xl font-bold">{n}</p>
                 <p className="text-blue-200 text-sm">{l}</p>
@@ -198,4 +198,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-}
+};

@@ -89,7 +89,7 @@ export default function VendorPage() {
             </div>
             <div className="flex flex-wrap gap-8 mt-14 pt-10 border-t border-white/[0.08]">
               {[
-                [c("hero","stat0.value","0%"),     c("hero","stat0.label","Commission")],
+                [c("hero","stat0.value","1%"),     c("hero","stat0.label","Commission")],
                 [c("hero","stat1.value","$0"),      c("hero","stat1.label","Listing Fees")],
                 [c("hero","stat2.value","2–3 Days"),c("hero","stat2.label","Approval Time")],
                 [c("hero","stat3.value","Free"),    c("hero","stat3.label","To Get Started")],
@@ -261,4 +261,4 @@ export default function VendorPage() {
     
     </div>
   );
-}
+};

@@ -148,7 +148,7 @@ export default function BrandManager({ readonly, vendorMode, externalOpenAdd, on
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#2a2a2a] flex items-center justify-center">
                         {b.logoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={b.logoUrl} alt={b.name} className="w-full h-full object-cover" />
+                          <img src={b.logoUrl} alt={b.name} className="w-full h-full object-contain p-1 bg-white" />
                         ) : (
                           <svg className="w-5 h-5 text-[#4b5563]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="8" r="6" strokeWidth={1.5}/></svg>
                         )}
@@ -282,4 +282,4 @@ export default function BrandManager({ readonly, vendorMode, externalOpenAdd, on
       )}
     </>
   );
-}
+};

@@ -113,12 +113,12 @@ export default function VendorRegisterPage() {
               Start<br />selling<br />today.
             </h1>
             <p className="text-blue-100 text-lg leading-relaxed max-w-xs">
-              Join 10,000+ vendors reaching conscious shoppers who care about quality and sustainability.
+              Join two focused businesses — Emergency Essentials and Secret Garden Bees — serving shoppers who care about quality and purpose.
             </p>
 
             {/* Perks */}
             <ul className="space-y-3">
-              {["Zero listing fees", "Built-in audience of 200K+ shoppers", "Simple dashboard to manage orders"].map((perk) => (
+              {["Zero listing fees", "Two businesses, one marketplace", "Simple dashboard to manage orders"].map((perk) => (
                 <li key={perk} className="flex items-center gap-3 text-blue-100 text-sm">
                   <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                     style={{ background: "rgba(255,255,255,0.2)" }}>
@@ -133,7 +133,7 @@ export default function VendorRegisterPage() {
           </div>
 
           <div className="flex gap-8">
-            {[["10K+", "Vendors"], ["50K+", "Products"], ["99%", "Satisfaction"]].map(([n, l]) => (
+            {[["2", "Businesses"], ["100+", "Products"], ["2008", "Established"]].map(([n, l]) => (
               <div key={l}>
                 <p className="text-white text-2xl font-bold">{n}</p>
                 <p className="text-blue-200 text-sm">{l}</p>
@@ -307,4 +307,4 @@ export default function VendorRegisterPage() {
       </div>
     </div>
   );
-}
+};

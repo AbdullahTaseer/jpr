@@ -104,11 +104,12 @@ function dbToCard(p: DbProduct) {
 type PublicReview = { id: string; rating: number; title: string | null; body: string; user: { name: string } };
 
 const STATS = [
-  { value: "10K+", label: "Active Vendors", icon: "🏪" },
-  { value: "50K+", label: "Products Listed", icon: "📦" },
-  { value: "200K+", label: "Happy Customers", icon: "😊" },
-  { value: "99%", label: "Satisfaction Rate", icon: "⭐" },
+  { value: "2", label: "Businesses", icon: "🏪" },
+  { value: "100+", label: "Products Listed", icon: "📦" },
+  { value: "2008", label: "Established", icon: "📅" },
+  { value: "2", label: "Brands We Stand Behind", icon: "⭐" },
 ];
+const FOUNDER_PHOTO = "https://res.cloudinary.com/dre9yontg/image/upload/v1787858294/jpr-uploads/o2rwunmyy91rlixv3as4.jpg";
 
 const TRENDY_SLIDES = [
   { id: "1529139574466-a303027c1d8b", label: "Spring Collection", tag: "NEW" },
@@ -441,7 +442,11 @@ export default function Home() {
             {/* Label */}
             <div className="flex items-center gap-3 mb-8">
               <div className="h-px w-10 bg-[#1B6FEB]" />
-              <span className="text-[#1B6FEB] text-[11px] font-black tracking-[0.28em] uppercase">{c("hero", "label", "Multi-Vendor Marketplace")}</span>
+              <span className="text-[#1B6FEB] text-[11px] font-black tracking-[0.28em] uppercase">
+                {c("hero", "label", "Two Businesses. One Shop.") === "Multi-Vendor Marketplace"
+                  ? "Two Businesses. One Shop."
+                  : c("hero", "label", "Two Businesses. One Shop.")}
+              </span>
             </div>
 
             {/* 2-line headline */}
@@ -469,16 +474,14 @@ export default function Home() {
             {/* Stats */}
             <div className="flex gap-10 pt-8 border-t border-white/[0.08]">
               {[0, 1, 2].map(i => {
-                const defaults = ["10K+", "50K+", "200K+"];
+                const defaults = ["2", "100+", "2008"];
+                const labels = ["Businesses", "Products", "Established"];
                 let value = c("stats", `${i}.value`, defaults[i]);
-                if (realStats) {
-                  if (i === 0) value = fmtStat(realStats.vendorCount);
-                  if (i === 1) value = fmtStat(realStats.productCount);
-                }
+                if (i === 1 && realStats) value = fmtStat(realStats.productCount);
                 return (
                   <div key={i}>
                     <p className="font-display font-black text-5xl sm:text-6xl text-white leading-none">{value}</p>
-                    <p className="text-white/40 text-xs mt-1.5 font-sans tracking-wide">{c("stats", `${i}.label`, ["Vendors","Products","Customers"][i])}</p>
+                    <p className="text-white/40 text-xs mt-1.5 font-sans tracking-wide">{c("stats", `${i}.label`, labels[i])}</p>
                   </div>
                 );
               })}
@@ -526,7 +529,7 @@ export default function Home() {
           )}
 
           {/* Card 1 — Active Vendors (top-left) */}
-          <div className="absolute top-10 left-10 glass rounded-2xl p-4 shadow-2xl animate-float z-20 max-w-[190px]">
+          {/* <div className="absolute top-10 left-10 glass rounded-2xl p-4 shadow-2xl animate-float z-20 max-w-[190px]">
             <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Live on Platform</p>
             <div className="flex items-center gap-2 mb-1">
               <div className="flex -space-x-2">
@@ -539,10 +542,10 @@ export default function Home() {
               <span className="text-xs font-black text-gray-700">{realStats ? fmtStat(realStats.vendorCount) : "10K+"}</span>
             </div>
             <p className="text-[11px] text-gray-600 font-medium">Active vendors selling today</p>
-          </div>
+          </div> */}
 
           {/* Card 2 — Rating (top-right) */}
-          <div className="absolute top-10 right-8 glass rounded-2xl p-3.5 shadow-2xl animate-float-delayed z-20">
+          {/* <div className="absolute top-10 right-8 glass rounded-2xl p-3.5 shadow-2xl animate-float-delayed z-20">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl font-black text-gray-900">4.9</span>
               <div className="flex flex-col gap-0.5">
@@ -551,15 +554,15 @@ export default function Home() {
               </div>
             </div>
             <p className="text-[11px] font-bold text-[#1B6FEB]">Platform Rating</p>
-          </div>
+          </div> */}
 
           {/* Card 3 — Discount badge (mid-right) */}
-          <div className="absolute top-1/3 right-6 animate-float-slow z-20">
+          {/* <div className="absolute top-1/3 right-6 animate-float-slow z-20">
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#1B6FEB] to-[#0A2070] flex flex-col items-center justify-center shadow-2xl shadow-blue-500/50 border-2 border-white/20">
               <span className="text-yellow-300 font-black text-xl leading-none">30%</span>
               <span className="text-white/80 text-[10px] font-black tracking-wide">OFF</span>
             </div>
-          </div>
+          </div> */}
 
           {/* Card 4 — Product card #1 (bottom-left) */}
           {(() => {
@@ -636,7 +639,7 @@ export default function Home() {
           })()}
 
           {/* Card 6 — New arrivals badge (bottom-right) */}
-          <div className="absolute bottom-10 right-8 z-20 animate-float-delayed">
+          {/* <div className="absolute bottom-10 right-8 z-20 animate-float-delayed">
             <div className="bg-emerald-500 text-white rounded-2xl px-4 py-3 text-xs font-black shadow-xl shadow-emerald-500/40">
               <div className="flex items-center gap-2 mb-0.5">
                 <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
@@ -644,7 +647,7 @@ export default function Home() {
               </div>
               <span className="text-emerald-100 text-[10px] font-medium">Added this week</span>
             </div>
-          </div>
+          </div> */}
 
           {/* Card 7 — Product card #3 (bottom-center) */}
           {(() => {
@@ -878,7 +881,7 @@ export default function Home() {
               </h2>
 
               <p className="text-white/55 text-base leading-relaxed mb-10 max-w-md">
-                {c("vendor_cta", "body", "Join thousands of vendors who trust our platform to connect their products with the right buyers. Easy setup, no hidden fees, and a community that genuinely invests in your success every step of the way.")}
+                {c("vendor_cta", "body", "Latter Day Shopping is home to two businesses we know and stand behind. Easy setup, no hidden fees, and a community that invests in purposeful products.")}
               </p>
 
               <ul className="space-y-4 mb-10">
@@ -886,7 +889,7 @@ export default function Home() {
                   { text: c("vendor_cta","bullet0.text","Quick & easy vendor registration"), sub: c("vendor_cta","bullet0.sub","Get started in under 10 minutes") },
                   { text: c("vendor_cta","bullet1.text","Admin approval within 24 hours"),   sub: c("vendor_cta","bullet1.sub","Fast-tracked onboarding process") },
                   { text: c("vendor_cta","bullet2.text","Add unlimited products to your store"), sub: c("vendor_cta","bullet2.sub","No listing caps, ever") },
-                  { text: c("vendor_cta","bullet3.text","Reach thousands of conscious shoppers"), sub: c("vendor_cta","bullet3.sub","200K+ active buyers") },
+                  { text: c("vendor_cta","bullet3.text","Reach shoppers who buy with intention"), sub: c("vendor_cta","bullet3.sub","A focused audience, not a mass marketplace") },
                 ].map(pt => (
                   <li key={pt.text} className="flex gap-4">
                     <div className="w-6 h-6 rounded-full bg-[#1B6FEB] flex items-center justify-center text-white flex-shrink-0 mt-0.5">
@@ -914,7 +917,7 @@ export default function Home() {
                     className={`rounded-3xl p-7 text-center relative overflow-hidden
                       ${i === 0 ? "bg-[#1B6FEB]" : i === 1 ? "bg-white/[0.07] border border-white/[0.1]"
                         : i === 2 ? "bg-white/[0.07] border border-white/[0.1]" : "bg-amber-500/90"}`}>
-                    <div className="font-display font-black text-4xl text-white mb-1">{c("vendor_cta", `stat${i}.value`, s.value)}</div>
+                    <div className="font-display font-black text-4xl text-white mb-1">{i === 1 && realStats ? fmtStat(realStats.productCount) : c("vendor_cta", `stat${i}.value`, s.value)}</div>
                     <div className="text-white/60 text-xs font-semibold tracking-wide uppercase">{c("vendor_cta", `stat${i}.label`, s.label)}</div>
                     {(i === 0 || i === 3) && (
                       <div className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full bg-white/10 blur-xl" />
@@ -923,18 +926,18 @@ export default function Home() {
                 ))}
               </div>
 
-              {/* Vendor testimonial */}
+              {/* Founder */}
               <div className="mt-4 glass rounded-3xl p-5 flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 relative">
-                  <Image src={unsplash("1494790108377-be9c29b29330", 120, 120)} fill alt="Vendor" className="object-cover" sizes="56px" />
+                  <Image src={c("vendor_cta", "quoteImage", FOUNDER_PHOTO)} fill alt="Founder" className="object-cover object-top" sizes="56px" unoptimized />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-gray-700 text-xs leading-relaxed line-clamp-2">
-                    {c("vendor_cta", "quote", "\"Sales tripled within 3 months. The platform's reach is unmatched.\"")}
+                    {c("vendor_cta", "quote", "\"We built Latter Day Shopping around two businesses we know and stand behind.\"")}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(i => <IcoStar key={i} filled />)}</div>
-                    <span className="text-gray-500 text-xs font-bold">{c("vendor_cta", "quoteName", "Sarah M. — Verified Vendor")}</span>
+                    <span className="text-gray-500 text-xs font-bold">{c("vendor_cta", "quoteName", "John-Paul Register — Founder")}</span>
                   </div>
                 </div>
               </div>
@@ -1086,4 +1089,4 @@ export default function Home() {
 
     </div>
   );
-}
+};

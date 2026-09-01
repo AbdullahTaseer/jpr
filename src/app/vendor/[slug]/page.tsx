@@ -19,6 +19,7 @@ type Vendor = {
   shopName: string | null;
   shopSlug: string | null;
   profileImage: string | null;
+  brandLogo: string | null;
   bannerImage: string | null;
   aboutTitle: string | null;
   aboutDescription: string | null;
@@ -54,10 +55,10 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <Link href={`/shop/${product.slug}`}
       className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-[#1B6FEB]/25 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-[#1B6FEB]/8 transition-all duration-300">
-      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
+      <div className="relative aspect-[5/4] bg-white overflow-hidden rounded-t-2xl">
         {product.images[0] ? (
           <Image src={product.images[0]} fill alt={product.title}
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover rounded-t-2xl group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width:640px)50vw,(max-width:1024px)33vw,25vw" unoptimized />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -208,6 +209,7 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
 
   const name        = vendor.shopName ?? "Vendor";
   const initials    = name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  const avatarSrc   = vendor.profileImage || vendor.brandLogo;
   const sinceYear   = vendor.aboutSince
     ? new Date(vendor.aboutSince).getFullYear()
     : new Date(vendor.createdAt).getFullYear();
@@ -248,11 +250,11 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
         <div className="flex flex-col sm:flex-row gap-6 -mt-16 sm:-mt-20 relative z-10">
 
           {/* Avatar */}
-          <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-3xl border-4 border-white overflow-hidden bg-gradient-to-br from-[#1B3A8A] to-[#1B6FEB] flex-shrink-0 shadow-xl shadow-black/15">
-            {vendor.profileImage ? (
-              <Image src={vendor.profileImage} fill alt={name} className="object-cover" unoptimized />
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-3xl border-4 border-white overflow-hidden bg-white flex-shrink-0 shadow-xl shadow-black/15">
+            {avatarSrc ? (
+              <Image src={avatarSrc} fill alt={name} className="object-contain p-2" unoptimized />
             ) : (
-              <span className="absolute inset-0 flex items-center justify-center text-white font-black text-4xl">
+              <span className="absolute inset-0 flex items-center justify-center text-white font-black text-4xl bg-gradient-to-br from-[#1B3A8A] to-[#1B6FEB]">
                 {initials}
               </span>
             )}
@@ -560,4 +562,4 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
       `}</style>
     </div>
   );
-}
+};

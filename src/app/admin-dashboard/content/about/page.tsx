@@ -38,10 +38,10 @@ const DEFAULT_VALUES = [
 ];
 
 const DEFAULT_TIMELINE = [
-    { year: "2022", title: "The Idea",          desc: "Frustrated by a marketplace full of mass-produced goods, our founder imagined a space built around purpose." },
-    { year: "2023", title: "Building the Dream",desc: "A small team spent a year building the platform and vetting the first 50 vendors." },
-    { year: "2024", title: "Launch Day",        desc: "Latter Day Shopping launched to the public with 50 vendors and 1,200 curated products." },
-    { year: "2026", title: "Growing Together",  desc: "Today we host 10,000+ vendors, 50,000+ products, and serve 200,000+ conscious shoppers." },
+    { year: "2008", title: "Established", desc: "Our story began in 2008 — building businesses rooted in preparedness, quality, and products families can trust." },
+    { year: "Two Brands", title: "Emergency Essentials", desc: "Emergency Essentials / BePrepared is one of our two businesses: food storage, kits, and emergency preparedness supplies." },
+    { year: "Two Brands", title: "Secret Garden Bees", desc: "Secret Garden Bees, an NC Veteran Farm, is our second business — honey and farm goods produced with care." },
+    { year: "Today", title: "One Marketplace", desc: "Latter Day Shopping is home to those two businesses. We are not a marketplace of thousands of vendors — just two focused brands, side by side." },
 ];
 
 export default function ContentAboutPage() {
@@ -89,9 +89,9 @@ export default function ContentAboutPage() {
                 <ImageUploadField label="Side Image" value={get("mission", "image", "")} onChange={v => set("mission", "image", v)} />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
                     {[
-                        { k: "0", defV: "10K+", defL: "Vendors" },
-                        { k: "1", defV: "50K+", defL: "Products" },
-                        { k: "2", defV: "200K+", defL: "Shoppers" },
+                        { k: "0", defV: "2", defL: "Businesses" },
+                        { k: "1", defV: "100+", defL: "Products" },
+                        { k: "2", defV: "2008", defL: "Established" },
                     ].map(s => (
                         <div key={s.k} className="bg-[#242424] rounded-xl p-4 space-y-2">
                             <p className="text-[#6b7280] text-xs font-semibold uppercase tracking-wide">Stat {parseInt(s.k)+1}</p>
@@ -159,4 +159,4 @@ export default function ContentAboutPage() {
             </Section>
         </div>
     );
-}
+};

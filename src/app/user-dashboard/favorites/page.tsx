@@ -70,9 +70,9 @@ export default function FavoritesPage() {
           {products.map(({ product }) => (
             <div key={product.id} className="bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden group hover:border-white/20 transition-all">
               <Link href={`/shop/${product.slug}`} className="block">
-                <div className="relative h-44 bg-[#242424]">
+                <div className="relative aspect-[5/4] bg-[#242424] overflow-hidden rounded-t-2xl">
                   {product.images[0] ? (
-                    <Image src={product.images[0]} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+                    <Image src={product.images[0]} alt={product.title} fill className="object-cover rounded-t-2xl group-hover:scale-105 transition-transform duration-500" unoptimized />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-[#4b5563] text-sm">No image</div>
                   )}
@@ -101,4 +101,4 @@ export default function FavoritesPage() {
       )}
     </div>
   );
-}
+};

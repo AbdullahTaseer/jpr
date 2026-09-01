@@ -12,7 +12,7 @@ type FaqItem = { id: string; question: string; answer: string };
 export default function ContactPage() {
   const s = useSiteSettings();
   const email = s.email || "support@latterdayshopping.com";
-  const phone = s.phone?.trim() || null;
+  const phone = s.phone?.trim() || "15415301941";
   const address = s.address?.trim() || null;
 
   const [cms, setCms] = useState<Record<string, string>>({});
@@ -236,4 +236,4 @@ export default function ContactPage() {
       </section>
     </div>
   );
-}
+};

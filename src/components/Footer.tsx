@@ -4,6 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSiteSettings } from "@/context/SiteSettingsContext";
 
+const QUICK_LINKS = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/about" },
+  { label: "Shop", href: "/shop" },
+  { label: "Contact Us", href: "/contact" },
+  { label: "Blog", href: "/blog" },
+];
+
 const IcoMail = () => (
   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/>
@@ -45,12 +53,11 @@ const IcoYT = () => (
   </svg>
 );
 
-
 export default function Footer() {
   const s = useSiteSettings();
   const logoSrc = s.logoUrl || "/images/logo.png";
   const email = s.email || "support@latterdayshopping.com";
-  const phone = s.phone?.trim() || null;
+  const phone = s.phone?.trim() || "15415301941";
   const siteName = s.siteName || "Latter Day Shopping";
 
   const socialLinks = [
@@ -61,137 +68,43 @@ export default function Footer() {
     { label: "YouTube",   Icon: IcoYT,  href: s.youtube   },
   ].filter(x => x.href);
 
-  const contactCards = [
-    { Icon: IcoMail,  label: "Email Us", value: email, href: `mailto:${email}` },
-    ...(phone
-      ? [{ Icon: IcoPhone, label: "Call Us", value: phone, href: `tel:${phone.replace(/\D/g, "")}` }]
-      : []),
-    { Icon: IcoClock, label: "Hours", value: "Mon–Fri, 9am–6pm CST", href: "#" },
+  const contactItems = [
+    { Icon: IcoMail,  label: "Email Us", value: email, href: `mailto:${email}` as string | null },
+    { Icon: IcoPhone, label: "Call Us", value: phone, href: `tel:${phone.replace(/\D/g, "")}` as string | null },
+    { Icon: IcoClock, label: "Hours", value: "Mon–Fri, 9am–6pm CST", href: null },
   ];
 
   return (
     <footer className="bg-[#04080F] text-white overflow-hidden relative">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1B6FEB]/70 to-transparent" />
 
-      {/* Brand Hero Strip */}
-      <div className="relative border-b border-white/[0.07]">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1B6FEB]/08 to-transparent pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 relative z-10">
-
-          {/* Centered logo */}
-          <div className="flex flex-col items-center text-center mb-10">
-            <div className="relative mb-5">
-              <div className="absolute inset-0 bg-[#1B6FEB] blur-3xl opacity-35 rounded-3xl scale-125 pointer-events-none" />
-              <div className="relative bg-gradient-to-br from-[#1557D0] via-[#1B6FEB] to-[#2D8CF0] rounded-3xl px-10 py-6 border border-white/20 shadow-2xl shadow-blue-900/60">
-                <Image src={logoSrc} alt={siteName} width={200} height={50}
-                  className="h-12 w-auto brightness-0 invert mx-auto" unoptimized={!!s.logoUrl} />
-                <div className="flex items-center justify-center gap-3 mt-3">
-                  <div className="h-px w-12 bg-white/25" />
-                  <span className="text-white/50 text-[10px] font-black tracking-[0.25em] uppercase">Est. 2024</span>
-                  <div className="h-px w-12 bg-white/25" />
-                </div>
-              </div>
-            </div>
-            <p className="text-white/80 font-semibold text-lg max-w-md leading-snug mb-2">
-              Building a community of intentional shoppers &amp; purposeful sellers.
-            </p>
-            <p className="text-gray-500 text-sm max-w-sm leading-relaxed">
-              A free marketplace where every purchase supports vendors who create with care, values, and intention.
-            </p>
-          </div>
-
-          {/* Contact cards */}
-          <div className={`grid grid-cols-1 gap-4 max-w-2xl mx-auto ${contactCards.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
-            {contactCards.map(({ Icon, label, value, href }) => (
-              <a key={label} href={href}
-                className="flex items-center gap-3 bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.09] hover:border-[#1B6FEB]/40 rounded-2xl px-5 py-4 transition-all group text-left">
-                <div className="w-9 h-9 rounded-xl bg-[#1B6FEB]/20 group-hover:bg-[#1B6FEB]/35 flex items-center justify-center text-[#60A5FA] flex-shrink-0 transition-colors">
-                  <Icon />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">{label}</p>
-                  <p className="text-white/80 text-xs font-semibold group-hover:text-white truncate transition-colors">{value}</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* 4-column links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-16">
 
-          <div>
-            <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
-              <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Company
-            </h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "About Us", href: "/about" },
-                { label: "Contact",  href: "/contact" },
-                { label: "Blog",     href: "/blog" },
-                { label: "Careers",  href: "/careers" },
-              ].map(({ label, href }) => (
-                <li key={label}>
-                  <Link href={href} className="text-gray-400 text-sm hover:text-white transition-all inline-flex items-center gap-2 group">
-                    <span className="w-0 group-hover:w-2.5 h-px bg-[#1B6FEB] transition-all duration-300 rounded-full flex-shrink-0" />
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
-              <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Marketplace
-            </h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "Shop All",     href: "/shop" },
-                { label: "New Arrivals", href: "/new-arrivals" },
-                { label: "Categories",   href: "/categories" },
-                { label: "Brands",       href: "/brands" },
-              ].map(({ label, href }) => (
-                <li key={label}>
-                  <Link href={href} className="text-gray-400 text-sm hover:text-white transition-all inline-flex items-center gap-2 group">
-                    <span className="w-0 group-hover:w-2.5 h-px bg-[#1B6FEB] transition-all duration-300 rounded-full flex-shrink-0" />
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
-              <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Business
-            </h4>
-            <ul className="space-y-3.5">
-              {[
-                { label: "Become a Vendor", href: "/vendor" },
-              ].map(({ label, href }) => (
-                <li key={label}>
-                  <a href={href} className="text-gray-400 text-sm hover:text-white transition-all inline-flex items-center gap-2 group">
-                    <span className="w-0 group-hover:w-2.5 h-px bg-[#1B6FEB] transition-all duration-300 rounded-full flex-shrink-0" />
-                    {label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
-              <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Follow Us
-            </h4>
+          {/* Left — logo + socials */}
+          <div className="flex flex-col items-start">
+            <Link href="/" className="inline-block mb-3">
+              <Image
+                src={logoSrc}
+                alt={siteName}
+                width={200}
+                height={50}
+                className="h-12 w-auto"
+                unoptimized={!!s.logoUrl}
+              />
+            </Link>
+            <p className="text-gray-400 text-sm mb-6">We Established in 2008</p>
             {socialLinks.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {socialLinks.map(({ label, Icon, href }) => (
-                  <a key={label} href={href!} target="_blank" rel="noopener noreferrer"
+                  <a
+                    key={label}
+                    href={href!}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     title={label}
-                    className="w-10 h-10 rounded-xl bg-white/[0.07] hover:bg-[#1B6FEB] border border-white/[0.09] hover:border-[#1B6FEB] flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1B6FEB]/30">
+                    className="w-10 h-10 rounded-xl bg-white/[0.07] hover:bg-[#1B6FEB] border border-white/[0.09] hover:border-[#1B6FEB] flex items-center justify-center text-gray-400 hover:text-white transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#1B6FEB]/30"
+                  >
                     <Icon />
                   </a>
                 ))}
@@ -200,6 +113,62 @@ export default function Footer() {
               <p className="text-gray-600 text-sm">Coming soon</p>
             )}
           </div>
+
+          {/* Center — quick links (same as nav) */}
+          <div className="md:flex md:flex-col md:items-center">
+            <div>
+              <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
+                <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Quick Links
+              </h4>
+              <ul className="space-y-3.5">
+                {QUICK_LINKS.map(({ label, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="text-gray-400 text-sm hover:text-white transition-all inline-flex items-center gap-2 group">
+                      <span className="w-0 group-hover:w-2.5 h-px bg-[#1B6FEB] transition-all duration-300 rounded-full flex-shrink-0" />
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Right — contact */}
+          <div className="md:flex md:flex-col md:items-end">
+            <div>
+              <h4 className="text-white font-black text-[11px] uppercase tracking-[0.22em] mb-6 flex items-center gap-2.5">
+                <span className="w-5 h-0.5 bg-[#1B6FEB] rounded-full" /> Contact Us
+              </h4>
+              <ul className="space-y-4">
+                {contactItems.map(({ Icon, label, value, href }) => {
+                  const inner = (
+                    <>
+                      <div className="w-9 h-9 rounded-xl bg-[#1B6FEB]/20 group-hover:bg-[#1B6FEB]/35 flex items-center justify-center text-[#60A5FA] flex-shrink-0 transition-colors">
+                        <Icon />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-wider">{label}</p>
+                        <p className="text-white/80 text-sm font-semibold group-hover:text-white truncate transition-colors">{value}</p>
+                      </div>
+                    </>
+                  );
+                  return (
+                    <li key={label}>
+                      {href ? (
+                        <a href={href} className="flex items-center gap-3 group">
+                          {inner}
+                        </a>
+                      ) : (
+                        <div className="flex items-center gap-3 group">
+                          {inner}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -207,18 +176,15 @@ export default function Footer() {
       <div className="border-t border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              
-              <p className="text-gray-500 text-xs">
-                © {new Date().getFullYear()} <span className="text-gray-400 font-semibold">{siteName}</span>. All rights reserved. Made with 💜 by <a href="https://leendesignstudio.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Leen Design Studios</a>
-              </p>
-            </div>
+            <p className="text-gray-500 text-xs">
+              ©️ {new Date().getFullYear()} <span className="text-gray-400 font-semibold">{siteName}</span>. All rights reserved. Made with 💜 by <a href="https://leendesignstudio.com" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">Leen Design Studios</a>
+            </p>
             <div className="flex items-center gap-1 flex-wrap justify-center">
               {[
-                { label: "Privacy Policy",      href: "/privacy" },
-                { label: "Terms of Service",    href: "/terms" },
-                { label: "Disclaimer",          href: "/disclaimer" },
-                { label: "Affiliate Disclosure",href: "/affiliate-disclosure" },
+                { label: "Privacy Policy",       href: "/privacy" },
+                { label: "Terms of Service",     href: "/terms" },
+                { label: "Disclaimer",           href: "/disclaimer" },
+                { label: "Affiliate Disclosure", href: "/affiliate-disclosure" },
               ].map(({ label, href }, i, arr) => (
                 <span key={label} className="flex items-center gap-1">
                   <Link href={href} className="text-gray-500 text-xs hover:text-gray-200 transition-colors whitespace-nowrap">{label}</Link>
@@ -231,4 +197,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+};

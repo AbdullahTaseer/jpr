@@ -49,8 +49,8 @@ export default async function CategoriesPage() {
             {[
               [String(categories.length), "Categories"],
               [String(categories.reduce((s, c) => s + c._count.products, 0)), "Products"],
-              ["10K+", "Vendors"],
-              ["200K+", "Happy Buyers"],
+              ["2", "Businesses"],
+              ["2008", "Established"],
             ].map(([v, l]) => (
               <div key={l}>
                 <p className="font-display font-black text-3xl text-white">{v}</p>
@@ -138,4 +138,4 @@ export default async function CategoriesPage() {
       </section>
     </div>
   );
-}
+};
