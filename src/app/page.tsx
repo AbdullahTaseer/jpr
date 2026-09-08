@@ -289,6 +289,20 @@ function CategoryCard({ id, name, img }: { id?: string; name: string; img: strin
 
 const HERO_FALLBACK = unsplash("1483985988355-763728e1935b", 1200, 1400);
 
+
+function ImageWithSkeleton({ src, alt, className, sizes, preload, unoptimized, skeletonClassName = "bg-gray-200" }: {
+  src: string; alt: string; className?: string; sizes?: string; preload?: boolean; unoptimized?: boolean; skeletonClassName?: string;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <div className={`absolute inset-0 z-10 animate-pulse ${skeletonClassName}`} />}
+      <Image src={src} alt={alt} fill className={className} sizes={sizes} preload={preload} unoptimized={unoptimized}
+        onLoad={() => setLoaded(true)} />
+    </>
+  );
+}
+
 function fmtStat(n: number): string {
   if (n >= 10000) return `${Math.floor(n / 1000)}K+`;
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}K+`;
@@ -314,16 +328,18 @@ export default function Home() {
 
   // CMS content
   const [cms, setCms] = useState<Record<string, string>>({});
+  const [cmsLoaded, setCmsLoaded] = useState(false);
   const c = (section: string, key: string, def: string) => cms[`${section}.${key}`] ?? def;
 
   // Hero right-panel slideshow
   const [heroSlides, setHeroSlides] = useState<string[]>([]);
+  const [heroSlidesLoaded, setHeroSlidesLoaded] = useState(false);
   const [heroIdx, setHeroIdx] = useState(0);
   const [heroFading, setHeroFading] = useState(false);
 
   // Fetch CMS content
   useEffect(() => {
-    fetch("/api/cms/home", { cache: "no-store" }).then(r => r.json()).then(d => setCms(d.content ?? {})).catch(() => {});
+    fetch("/api/cms/home", { cache: "no-store" }).then(r => r.json()).then(d => setCms(d.content ?? {})).catch(() => {}).finally(() => setCmsLoaded(true));
   }, []);
 
   // Fetch real stats (vendor + product counts)
@@ -341,7 +357,8 @@ export default function Home() {
           .filter(Boolean) as string[];
         if (imgs.length > 0) setHeroSlides(imgs);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setHeroSlidesLoaded(true));
   }, []);
 
   // Auto-advance hero slider every 4 seconds with crossfade
@@ -492,25 +509,23 @@ export default function Home() {
 
         
         <div className="relative flex-1 min-h-[65vh] lg:min-h-screen bg-[#0D1425] overflow-hidden">
-          {/* Hero bg image — slides from admin or fallback */}
-          {heroSlides.length === 0 ? (
-            <Image src={HERO_FALLBACK} fill priority
-              alt="Hero" className="object-cover object-center scale-105" sizes="56vw" unoptimized={false} />
+          {/* Hero bg image — real slides from admin only, skeleton while loading, nothing if none configured */}
+          {!heroSlidesLoaded ? (
+            <div className="absolute inset-0 z-10 bg-[#182238] animate-pulse" />
           ) : (
-            <>
-              {heroSlides.map((src, i) => (
-                <div
-                  key={src}
-                  className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-                  style={{ opacity: i === heroIdx ? (heroFading ? 0 : 1) : 0, zIndex: i === heroIdx ? 1 : 0 }}
-                >
-                  <Image src={src} fill priority={i === 0}
-                    alt={`Hero slide ${i + 1}`}
-                    className="object-cover object-center scale-105"
-                    sizes="56vw" unoptimized />
-                </div>
-              ))}
-            </>
+            heroSlides.map((src, i) => (
+              <div
+                key={src}
+                className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+                style={{ opacity: i === heroIdx ? (heroFading ? 0 : 1) : 0, zIndex: i === heroIdx ? 1 : 0 }}
+              >
+                <ImageWithSkeleton src={src} preload={i === 0}
+                  alt={`Hero slide ${i + 1}`}
+                  className="object-cover object-center scale-105"
+                  sizes="56vw" unoptimized
+                  skeletonClassName="bg-[#182238]" />
+              </div>
+            ))
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-[#070C1B] via-[#070C1B]/25 to-transparent" style={{ zIndex: 2 }} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#070C1B]/70 via-transparent to-transparent" style={{ zIndex: 2 }} />
@@ -567,75 +582,65 @@ export default function Home() {
 
           {/* Card 4 — Product card #1 (bottom-left) */}
           {(() => {
-            const hpId = cms["hero_products.slot0.id"];
-            if (hpId) {
+            if (!cmsLoaded) {
               return (
-                <Link href={`/shop/${cms["hero_products.slot0.slug"] || ""}`} className="absolute bottom-16 left-8 glass rounded-2xl overflow-hidden shadow-2xl animate-float z-20 w-52">
-                  <div className="relative h-28">
-                    <Image src={cms["hero_products.slot0.image"] || HERO_FALLBACK} fill alt={cms["hero_products.slot0.title"] || ""} className="object-cover" sizes="208px" unoptimized />
-                    <div className="absolute top-2 left-2"><BadgePill label="FEATURED" /></div>
+                <div className="absolute bottom-16 left-8 glass rounded-2xl overflow-hidden shadow-2xl z-20 w-52">
+                  <div className="h-28 bg-gray-200 animate-pulse" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3 w-16 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
                   </div>
-                  <div className="p-3">
-                    {cms["hero_products.slot0.category"] && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{cms["hero_products.slot0.category"]}</p>}
-                    <p className="text-sm font-bold text-gray-900 leading-snug mt-0.5 line-clamp-1">{cms["hero_products.slot0.title"]}</p>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <span className="text-[#1B6FEB] font-black text-sm">{cms["hero_products.slot0.price"]}</span>
-                      <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <IcoStar key={i} filled />)}</div>
-                    </div>
-                  </div>
-                </Link>
+                </div>
               );
             }
+            const hpId = cms["hero_products.slot0.id"];
+            if (!hpId) return null;
             return (
-              <div className="absolute bottom-16 left-8 glass rounded-2xl overflow-hidden shadow-2xl animate-float z-20 w-52">
+              <Link href={`/shop/${cms["hero_products.slot0.slug"] || ""}`} className="absolute bottom-16 left-8 glass rounded-2xl overflow-hidden shadow-2xl animate-float z-20 w-52">
                 <div className="relative h-28">
-                  <Image src={unsplash("1548036328-c9fa89d128fa", 400, 300)} fill alt="Trending" className="object-cover" sizes="208px" />
-                  <div className="absolute top-2 left-2"><BadgePill label="TRENDING" /></div>
+                  <ImageWithSkeleton src={cms["hero_products.slot0.image"] || HERO_FALLBACK} alt={cms["hero_products.slot0.title"] || ""} className="object-cover" sizes="208px" unoptimized />
+                  <div className="absolute top-2 left-2"><BadgePill label="FEATURED" /></div>
                 </div>
                 <div className="p-3">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bags</p>
-                  <p className="text-sm font-bold text-gray-900 leading-snug mt-0.5">Artisan Leather Tote</p>
+                  {cms["hero_products.slot0.category"] && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{cms["hero_products.slot0.category"]}</p>}
+                  <p className="text-sm font-bold text-gray-900 leading-snug mt-0.5 line-clamp-1">{cms["hero_products.slot0.title"]}</p>
                   <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-[#1B6FEB] font-black text-sm">$129.00</span>
+                    <span className="text-[#1B6FEB] font-black text-sm">{cms["hero_products.slot0.price"]}</span>
                     <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <IcoStar key={i} filled />)}</div>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })()}
 
           {/* Card 5 — Product card #2 (mid-left) */}
           {(() => {
-            const hpId = cms["hero_products.slot1.id"];
-            if (hpId) {
+            if (!cmsLoaded) {
               return (
-                <Link href={`/shop/${cms["hero_products.slot1.slug"] || ""}`} className="absolute top-1/2 left-8 -translate-y-1/2 glass rounded-2xl overflow-hidden shadow-2xl animate-float-delayed z-20 w-44">
-                  <div className="relative h-24">
-                    <Image src={cms["hero_products.slot1.image"] || HERO_FALLBACK} fill alt={cms["hero_products.slot1.title"] || ""} className="object-cover" sizes="176px" unoptimized />
+                <div className="absolute top-1/2 left-8 -translate-y-1/2 glass rounded-2xl overflow-hidden shadow-2xl z-20 w-44">
+                  <div className="h-24 bg-gray-200 animate-pulse" />
+                  <div className="p-2.5 space-y-2">
+                    <div className="h-3 w-24 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-3 w-14 bg-gray-200 rounded animate-pulse" />
                   </div>
-                  <div className="p-2.5">
-                    <p className="text-xs font-bold text-gray-800 leading-snug line-clamp-1">{cms["hero_products.slot1.title"]}</p>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[#1B6FEB] font-black text-sm">{cms["hero_products.slot1.price"]}</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full">NEW</span>
-                    </div>
-                  </div>
-                </Link>
+                </div>
               );
             }
+            const hpId = cms["hero_products.slot1.id"];
+            if (!hpId) return null;
             return (
-              <div className="absolute top-1/2 left-8 -translate-y-1/2 glass rounded-2xl overflow-hidden shadow-2xl animate-float-delayed z-20 w-44">
+              <Link href={`/shop/${cms["hero_products.slot1.slug"] || ""}`} className="absolute top-1/2 left-8 -translate-y-1/2 glass rounded-2xl overflow-hidden shadow-2xl animate-float-delayed z-20 w-44">
                 <div className="relative h-24">
-                  <Image src={unsplash("1515372039744-b8f02a3ae446", 400, 300)} fill alt="Dress" className="object-cover" sizes="176px" />
+                  <ImageWithSkeleton src={cms["hero_products.slot1.image"] || HERO_FALLBACK} alt={cms["hero_products.slot1.title"] || ""} className="object-cover" sizes="176px" unoptimized />
                 </div>
                 <div className="p-2.5">
-                  <p className="text-xs font-bold text-gray-800 leading-snug">Organic Cotton Dress</p>
+                  <p className="text-xs font-bold text-gray-800 leading-snug line-clamp-1">{cms["hero_products.slot1.title"]}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-[#1B6FEB] font-black text-sm">$49.99</span>
+                    <span className="text-[#1B6FEB] font-black text-sm">{cms["hero_products.slot1.price"]}</span>
                     <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full">NEW</span>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })()}
 
@@ -652,30 +657,29 @@ export default function Home() {
 
           {/* Card 7 — Product card #3 (bottom-center) */}
           {(() => {
-            const hpId = cms["hero_products.slot2.id"];
-            if (hpId) {
+            if (!cmsLoaded) {
               return (
-                <Link href={`/shop/${cms["hero_products.slot2.slug"] || ""}`} className="absolute bottom-8 left-1/2 -translate-x-1/2 glass rounded-xl overflow-hidden shadow-2xl z-20 w-40 hidden lg:block">
-                  <div className="relative h-20">
-                    <Image src={cms["hero_products.slot2.image"] || HERO_FALLBACK} fill alt={cms["hero_products.slot2.title"] || ""} className="object-cover" sizes="160px" unoptimized />
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 glass rounded-xl overflow-hidden shadow-2xl z-20 w-40 hidden lg:block">
+                  <div className="h-20 bg-gray-200 animate-pulse" />
+                  <div className="p-2 space-y-1.5">
+                    <div className="h-2.5 w-20 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-2.5 w-10 bg-gray-200 rounded animate-pulse" />
                   </div>
-                  <div className="p-2">
-                    <p className="text-[11px] font-bold text-gray-900 line-clamp-1">{cms["hero_products.slot2.title"]}</p>
-                    <p className="text-[#1B6FEB] font-black text-xs">{cms["hero_products.slot2.price"]}</p>
-                  </div>
-                </Link>
+                </div>
               );
             }
+            const hpId = cms["hero_products.slot2.id"];
+            if (!hpId) return null;
             return (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 glass rounded-xl overflow-hidden shadow-2xl z-20 w-40 hidden lg:block">
+              <Link href={`/shop/${cms["hero_products.slot2.slug"] || ""}`} className="absolute bottom-8 left-1/2 -translate-x-1/2 glass rounded-xl overflow-hidden shadow-2xl z-20 w-40 hidden lg:block">
                 <div className="relative h-20">
-                  <Image src={unsplash("1523275335684-37898b6baf30", 300, 200)} fill alt="Watch" className="object-cover" sizes="160px" />
+                  <ImageWithSkeleton src={cms["hero_products.slot2.image"] || HERO_FALLBACK} alt={cms["hero_products.slot2.title"] || ""} className="object-cover" sizes="160px" unoptimized />
                 </div>
                 <div className="p-2">
-                  <p className="text-[11px] font-bold text-gray-900">Smart Watch</p>
-                  <p className="text-[#1B6FEB] font-black text-xs">$89.50</p>
+                  <p className="text-[11px] font-bold text-gray-900 line-clamp-1">{cms["hero_products.slot2.title"]}</p>
+                  <p className="text-[#1B6FEB] font-black text-xs">{cms["hero_products.slot2.price"]}</p>
                 </div>
-              </div>
+              </Link>
             );
           })()}
         </div>
