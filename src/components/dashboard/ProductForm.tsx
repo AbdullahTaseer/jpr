@@ -132,7 +132,10 @@ export default function ProductForm({ productId, isAdmin }: Props) {
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
-    fetch(`/api/vendor/products/${productId}`)
+    const url = isAdmin
+      ? `/api/admin/products/${productId}`
+      : `/api/vendor/products/${productId}`;
+    fetch(url)
       .then((r) => r.json())
       .then((data) => {
         const p = data.product;
@@ -156,7 +159,7 @@ export default function ProductForm({ productId, isAdmin }: Props) {
       })
       .catch(() => showToast("Failed to load product", "error"))
       .finally(() => setLoading(false));
-  }, [productId]);
+  }, [productId, isAdmin]);
 
   const handleTitleChange = (val: string) => {
     setTitle(val);
@@ -169,7 +172,7 @@ export default function ProductForm({ productId, isAdmin }: Props) {
       showToast("Title, slug, and price are required", "error");
       return;
     }
-    if (isAdmin && !isEdit && !vendorId) {
+    if (isAdmin && !vendorId) {
       showToast("Please select a vendor", "error");
       return;
     }
@@ -364,8 +367,8 @@ export default function ProductForm({ productId, isAdmin }: Props) {
               </Select>
             </Field>
 
-            {isAdmin && !isEdit && (
-              <Field label="Assign to Vendor" required>
+            {isAdmin && (
+              <Field label={isEdit ? "Vendor" : "Assign to Vendor"} required>
                 <Select value={vendorId} onChange={(e) => setVendorId(e.target.value)}>
                   <option value="">Select vendor...</option>
                   {vendors.map(v => (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 
 type Product = {
     id: string;
@@ -170,7 +171,20 @@ export default function AdminProductsTable() {
                                         </td>
                                         <td className="px-4 py-3.5">
                                             <div className="flex items-center gap-2">
-                                                <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"><IcoTrash /></button>
+                                                <Link
+                                                    href={`/admin-dashboard/products/${p.id}/edit`}
+                                                    className="p-1.5 rounded-lg bg-[#1B6FEB]/10 text-[#1B6FEB] hover:bg-[#1B6FEB]/20 transition-colors"
+                                                    title="Edit product"
+                                                >
+                                                    <IcoEdit />
+                                                </Link>
+                                                <button
+                                                    onClick={() => setDeleteId(p.id)}
+                                                    className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                                                    title="Delete product"
+                                                >
+                                                    <IcoTrash />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
