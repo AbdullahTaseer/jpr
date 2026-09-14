@@ -20,6 +20,13 @@ function formatTick(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
+function initials(title: string) {
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 export default function ReferralBarChart({ data = [], loading }: Props) {
   const [active, setActive] = useState<number | null>(null);
 
@@ -39,7 +46,6 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
   const selected = active !== null ? data[active] : null;
   const products = selected?.products ?? [];
 
-  // Position tooltip near the selected bar (SVG coords → % of chart)
   const tooltipLeftPct = active !== null
     ? ((pad.left + active * barGap + barGap / 2) / W) * 100
     : 50;
@@ -48,7 +54,7 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
     <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
       <div className="mb-6">
         <h3 className="text-white font-semibold text-base">Referral Clicks Over Time</h3>
-        <p className="text-[#6b7280] text-xs mt-1">Click a month bar to see product names</p>
+        <p className="text-[#6b7280] text-xs mt-1">Hover a month bar to see products</p>
       </div>
 
       {loading ? (
@@ -60,7 +66,10 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
           No click data available yet.
         </div>
       ) : (
-        <div className="relative w-full overflow-visible">
+        <div
+          className="relative w-full"
+          onMouseLeave={() => setActive(null)}
+        >
           <div className="w-full overflow-x-auto">
             <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto min-w-[360px]">
               {ticks.map((tick) => {
@@ -83,7 +92,7 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
                   <g
                     key={`${d.month}-${i}`}
                     className="cursor-pointer"
-                    onClick={() => setActive(prev => (prev === i ? null : i))}
+                    onMouseEnter={() => setActive(i)}
                   >
                     <rect
                       x={pad.left + i * barGap}
@@ -132,40 +141,41 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
 
           {selected && (
             <div
-              className="absolute z-20 w-[260px] max-w-[calc(100%-1rem)] -translate-x-1/2 pointer-events-auto"
+              className="absolute z-20 w-[300px] max-w-[calc(100%-1rem)] -translate-x-1/2 pointer-events-none"
               style={{
-                left: `min(max(${tooltipLeftPct}%, 130px), calc(100% - 130px))`,
-                top: 8,
+                left: `min(max(${tooltipLeftPct}%, 150px), calc(100% - 150px))`,
+                top: 4,
               }}
             >
-              <div className="bg-[#0d0d0d] border border-[#1B6FEB]/40 rounded-xl shadow-2xl shadow-black/50 p-3.5">
-                <div className="flex items-center justify-between gap-2 mb-2.5">
-                  <div>
-                    <p className="text-white text-sm font-semibold">{selected.month}</p>
-                    <p className="text-[#6b7280] text-[11px]">
-                      {selected.clicks} click{selected.clicks === 1 ? "" : "s"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActive(null)}
-                    className="text-[#6b7280] hover:text-white text-lg leading-none px-1"
-                    aria-label="Close"
-                  >
-                    ×
-                  </button>
+              <div className="bg-[#0b0b0b]/95 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl shadow-black/60 p-3.5">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-white text-sm font-semibold">{selected.month}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#1B6FEB]/20 text-[#60A5FA] px-2 py-1 rounded-full">
+                    {selected.clicks} clicks
+                  </span>
                 </div>
+
                 {products.length === 0 ? (
-                  <p className="text-[#6b7280] text-xs">No product clicks this month.</p>
+                  <p className="text-[#6b7280] text-xs py-2">No product clicks this month.</p>
                 ) : (
-                  <ul className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                  <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto">
                     {products.map((p, idx) => (
-                      <li key={`${p.title}-${idx}`} className="flex items-start justify-between gap-3">
-                        <span className="text-[#e5e7eb] text-xs leading-snug line-clamp-2">{p.title}</span>
-                        <span className="shrink-0 text-[#60A5FA] text-xs font-bold tabular-nums">{p.clicks}</span>
-                      </li>
+                      <div
+                        key={`${p.title}-${idx}`}
+                        className="inline-flex items-center gap-2 max-w-full rounded-full border border-white/10 bg-white/[0.04] pl-1.5 pr-2.5 py-1"
+                      >
+                        <span className="w-6 h-6 rounded-full bg-[#1B6FEB]/25 text-[#60A5FA] text-[9px] font-black flex items-center justify-center shrink-0">
+                          {initials(p.title)}
+                        </span>
+                        <span className="text-[#e5e7eb] text-[11px] font-medium truncate max-w-[150px]">
+                          {p.title}
+                        </span>
+                        <span className="text-[#1B6FEB] text-[10px] font-black tabular-nums shrink-0">
+                          {p.clicks}
+                        </span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             </div>
