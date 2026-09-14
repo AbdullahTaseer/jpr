@@ -15,7 +15,7 @@ type Stats = {
     totalProducts: number; productsThisMonth: number; productsPct: number;
     totalClicks: number; clicksThisMonth: number; clicksPct: number;
     pendingVendors: number;
-    monthlyClicks: { month: string; clicks: number }[];
+    monthlyClicks: { month: string; clicks: number; products?: { title: string; clicks: number }[] }[];
 };
 
 export default function AdminDashboardPage() {

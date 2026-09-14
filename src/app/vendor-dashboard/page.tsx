@@ -31,7 +31,7 @@ type DashboardStats = {
   productsLastMonth: number;
   productsPct: number;
   avgClickRate: string;
-  monthlyClicks: { month: string; clicks: number }[];
+  monthlyClicks: { month: string; clicks: number; products?: { title: string; clicks: number }[] }[];
   topProducts: { id: string; title: string; categoryName: string; clicks: number; ctr: string }[];
 };
 

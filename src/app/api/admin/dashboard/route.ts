@@ -41,15 +41,55 @@ export async function GET(req: NextRequest) {
         return Math.round(((current - previous) / previous) * 100);
     }
 
-    // 8-month click trend
-    const monthlyClicks: { month: string; clicks: number }[] = [];
+    // 8-month click trend (with product breakdown for chart tooltip)
+    const monthlyClicks: {
+        month: string;
+        clicks: number;
+        products: { title: string; clicks: number }[];
+    }[] = [];
+
     for (let i = 7; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999);
-        const count = await prisma.productClick.count({ where: { clickedAt: { gte: d, lte: end } } });
+
+        const grouped = await prisma.productClick.groupBy({
+            by: ["productId"],
+            where: { clickedAt: { gte: d, lte: end } },
+            _count: { productId: true },
+            orderBy: { _count: { productId: "desc" } },
+            take: 12,
+        });
+
+        const ids = grouped.map((g) => g.productId);
+        const details = ids.length
+            ? await prisma.product.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, title: true },
+            })
+            : [];
+        const titleMap = new Map(details.map((p) => [p.id, p.title]));
+
+        const products = grouped.map((g) => ({
+            title: titleMap.get(g.productId) ?? "Unknown product",
+            clicks: g._count.productId,
+        }));
+        const count = products.reduce((sum, p) => sum + p.clicks, 0);
+
+        // If more than top 12 products, include remainder so bar total matches
+        const totalInMonth = await prisma.productClick.count({
+            where: { clickedAt: { gte: d, lte: end } },
+        });
+        if (totalInMonth > count) {
+            products.push({
+                title: `Other products (${totalInMonth - count} clicks)`,
+                clicks: totalInMonth - count,
+            });
+        }
+
         monthlyClicks.push({
             month: d.toLocaleString("en-US", { month: "short" }),
-            clicks: count,
+            clicks: totalInMonth,
+            products,
         });
     }
 
