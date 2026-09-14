@@ -39,22 +39,16 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
   const selected = active !== null ? data[active] : null;
   const products = selected?.products ?? [];
 
+  // Position tooltip near the selected bar (SVG coords → % of chart)
+  const tooltipLeftPct = active !== null
+    ? ((pad.left + active * barGap + barGap / 2) / W) * 100
+    : 50;
+
   return (
     <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6">
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <h3 className="text-white font-semibold text-base">Referral Clicks Over Time</h3>
-          <p className="text-[#6b7280] text-xs mt-1">Hover or click a month bar to see product names</p>
-        </div>
-        {selected && (
-          <button
-            type="button"
-            onClick={() => setActive(null)}
-            className="text-[#6b7280] hover:text-white text-xs font-medium transition-colors"
-          >
-            Clear
-          </button>
-        )}
+      <div className="mb-6">
+        <h3 className="text-white font-semibold text-base">Referral Clicks Over Time</h3>
+        <p className="text-[#6b7280] text-xs mt-1">Click a month bar to see product names</p>
       </div>
 
       {loading ? (
@@ -66,7 +60,7 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
           No click data available yet.
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-5 items-start">
+        <div className="relative w-full overflow-visible">
           <div className="w-full overflow-x-auto">
             <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto min-w-[360px]">
               {ticks.map((tick) => {
@@ -89,10 +83,8 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
                   <g
                     key={`${d.month}-${i}`}
                     className="cursor-pointer"
-                    onMouseEnter={() => setActive(i)}
-                    onClick={() => setActive(i)}
+                    onClick={() => setActive(prev => (prev === i ? null : i))}
                   >
-                    {/* Hit area */}
                     <rect
                       x={pad.left + i * barGap}
                       y={pad.top}
@@ -138,34 +130,46 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
             </svg>
           </div>
 
-          <div className="bg-[#111] border border-white/10 rounded-xl p-4 min-h-[220px]">
-            {!selected ? (
-              <div className="h-full flex items-center justify-center text-center px-2">
-                <p className="text-[#6b7280] text-sm leading-relaxed">
-                  Select a month on the graph to see which products were clicked.
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-white text-sm font-semibold mb-1">{selected.month}</p>
-                <p className="text-[#6b7280] text-xs mb-4">
-                  {selected.clicks} total click{selected.clicks === 1 ? "" : "s"}
-                </p>
+          {selected && (
+            <div
+              className="absolute z-20 w-[260px] max-w-[calc(100%-1rem)] -translate-x-1/2 pointer-events-auto"
+              style={{
+                left: `min(max(${tooltipLeftPct}%, 130px), calc(100% - 130px))`,
+                top: 8,
+              }}
+            >
+              <div className="bg-[#0d0d0d] border border-[#1B6FEB]/40 rounded-xl shadow-2xl shadow-black/50 p-3.5">
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <div>
+                    <p className="text-white text-sm font-semibold">{selected.month}</p>
+                    <p className="text-[#6b7280] text-[11px]">
+                      {selected.clicks} click{selected.clicks === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActive(null)}
+                    className="text-[#6b7280] hover:text-white text-lg leading-none px-1"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
                 {products.length === 0 ? (
-                  <p className="text-[#6b7280] text-sm">No product clicks this month.</p>
+                  <p className="text-[#6b7280] text-xs">No product clicks this month.</p>
                 ) : (
-                  <ul className="space-y-2.5 max-h-[180px] overflow-y-auto pr-1">
+                  <ul className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                     {products.map((p, idx) => (
                       <li key={`${p.title}-${idx}`} className="flex items-start justify-between gap-3">
-                        <span className="text-[#d1d5db] text-xs leading-snug line-clamp-2">{p.title}</span>
-                        <span className="shrink-0 text-[#1B6FEB] text-xs font-bold tabular-nums">{p.clicks}</span>
+                        <span className="text-[#e5e7eb] text-xs leading-snug line-clamp-2">{p.title}</span>
+                        <span className="shrink-0 text-[#60A5FA] text-xs font-bold tabular-nums">{p.clicks}</span>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
