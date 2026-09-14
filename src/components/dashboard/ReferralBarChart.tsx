@@ -141,11 +141,12 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
 
           {selected && (
             <div
-              className="absolute z-20 w-[300px] max-w-[calc(100%-1rem)] -translate-x-1/2 pointer-events-none"
+              className="absolute z-20 w-[300px] max-w-[calc(100%-1rem)] -translate-x-1/2 pointer-events-auto"
               style={{
                 left: `min(max(${tooltipLeftPct}%, 150px), calc(100% - 150px))`,
                 top: 4,
               }}
+              onMouseEnter={() => setActive(active)}
             >
               <div className="bg-[#0b0b0b]/95 backdrop-blur-md border border-white/15 rounded-2xl shadow-2xl shadow-black/60 p-3.5">
                 <div className="flex items-center justify-between mb-3">
@@ -158,16 +159,16 @@ export default function ReferralBarChart({ data = [], loading }: Props) {
                 {products.length === 0 ? (
                   <p className="text-[#6b7280] text-xs py-2">No product clicks this month.</p>
                 ) : (
-                  <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto">
+                  <div className="flex flex-col gap-1.5 max-h-[160px] overflow-y-auto pr-1 tooltip-scroll">
                     {products.map((p, idx) => (
                       <div
                         key={`${p.title}-${idx}`}
-                        className="inline-flex items-center gap-2 max-w-full rounded-full border border-white/10 bg-white/[0.04] pl-1.5 pr-2.5 py-1"
+                        className="flex items-center gap-2 w-full rounded-full border border-white/10 bg-white/[0.04] pl-1.5 pr-2.5 py-1 shrink-0"
                       >
                         <span className="w-6 h-6 rounded-full bg-[#1B6FEB]/25 text-[#60A5FA] text-[9px] font-black flex items-center justify-center shrink-0">
                           {initials(p.title)}
                         </span>
-                        <span className="text-[#e5e7eb] text-[11px] font-medium truncate max-w-[150px]">
+                        <span className="text-[#e5e7eb] text-[11px] font-medium truncate flex-1 min-w-0">
                           {p.title}
                         </span>
                         <span className="text-[#1B6FEB] text-[10px] font-black tabular-nums shrink-0">
