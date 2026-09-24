@@ -79,8 +79,21 @@ export default function RichTextEditor({
     content: value,
     editorProps: {
       attributes: {
-        class: "focus:outline-none text-white text-sm leading-relaxed",
-        style: `min-height:${minHeight}px;padding:1rem`,
+        class: "focus:outline-none text-white text-sm leading-relaxed tiptap-editor",
+        style: `min-height:${minHeight}px;padding:1rem;color:#ffffff`,
+      },
+      transformPastedHTML(html) {
+        return html
+          .replace(/\s*style="([^"]*)"/gi, (_m, styles: string) => {
+            const cleaned = styles
+              .split(";")
+              .map((s: string) => s.trim())
+              .filter(Boolean)
+              .filter((s: string) => !/^(color|background(-color)?)\s*:/i.test(s))
+              .join("; ");
+            return cleaned ? ` style="${cleaned}"` : "";
+          })
+          .replace(/\s*color="[^"]*"/gi, "");
       },
     },
     onUpdate({ editor }) {
@@ -166,15 +179,22 @@ export default function RichTextEditor({
         {/* Link */}
         <Btn title="Insert / edit link" onClick={setLink} active={editor.isActive("link")}><IcoLink /></Btn>
 
-        {/* Text colour */}
+        {/* Text colour — default light so it stays readable on dark editor */}
         <label title="Text colour" className="p-1.5 rounded text-[#9ca3af] hover:text-white hover:bg-white/10 transition-colors cursor-pointer flex-shrink-0">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M11 3L5.5 17h2.25l1.12-3h6.25l1.12 3H18.5L13 3h-2zm-1.38 9L11 7.67 12.38 12H9.62z"/><rect x="3" y="20" width="18" height="2" rx="1" fill="#1B6FEB"/></svg>
           <input
             type="color"
+            defaultValue="#ffffff"
             className="sr-only"
             onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
           />
         </label>
+        <Btn
+          title="Reset text colour"
+          onClick={() => editor.chain().focus().unsetColor().run()}
+        >
+          <span className="text-[10px] font-bold px-0.5">A</span>
+        </Btn>
       </div>
 
       {/* Editor area */}
@@ -182,10 +202,12 @@ export default function RichTextEditor({
 
       {/* Prose styles scoped to this editor */}
       <style>{`
-        .tiptap h1 { font-size:1.6rem; font-weight:700; margin:0.5em 0 0.25em; }
-        .tiptap h2 { font-size:1.3rem; font-weight:700; margin:0.5em 0 0.25em; }
-        .tiptap h3 { font-size:1.1rem; font-weight:600; margin:0.4em 0 0.2em; }
-        .tiptap p  { margin:0.3em 0; }
+        .tiptap { color: #ffffff !important; }
+        .tiptap h1 { font-size:1.6rem; font-weight:700; margin:0.5em 0 0.25em; color:#ffffff; }
+        .tiptap h2 { font-size:1.3rem; font-weight:700; margin:0.5em 0 0.25em; color:#ffffff; }
+        .tiptap h3 { font-size:1.1rem; font-weight:600; margin:0.4em 0 0.2em; color:#ffffff; }
+        .tiptap p  { margin:0.3em 0; color:#ffffff; }
+        .tiptap span { color: inherit; }
         .tiptap ul { list-style:disc;    padding-left:1.4em; margin:0.4em 0; }
         .tiptap ol { list-style:decimal; padding-left:1.4em; margin:0.4em 0; }
         .tiptap blockquote { border-left:3px solid #1B6FEB; padding-left:0.75em; color:#9ca3af; margin:0.5em 0; }

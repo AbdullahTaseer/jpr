@@ -107,12 +107,20 @@ export default function DashboardSidebar() {
 
   useEffect(() => {
     fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) {
+          // Suspended / deactivated — clear session and kick to login
+          if (r.status === 401) {
+            await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+            router.push("/login");
+          }
+          return;
+        }
         if (data?.user) setUser({ name: data.user.name, email: data.user.email });
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   const handleLogout = async () => {
     try {

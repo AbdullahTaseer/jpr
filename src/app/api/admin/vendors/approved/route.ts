@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const vendors = await prisma.user.findMany({
-        where: { role: "VENDOR", vendorStatus: "APPROVED" },
+        where: { role: "VENDOR", vendorStatus: "APPROVED", isActive: true },
         select: { id: true, name: true, shopName: true },
         orderBy: { name: "asc" },
     });

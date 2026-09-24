@@ -98,6 +98,15 @@ export default function AdminSidebar() {
     if (path.startsWith("/admin-dashboard/content")) setContentOpen(true);
   }, [path]);
 
+  useEffect(() => {
+    fetch("/api/auth/me").then(async (r) => {
+      if (r.status === 401) {
+        await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+        router.push("/login");
+      }
+    }).catch(() => {});
+  }, [router]);
+
   const sidebarContent = (
     <div className="flex flex-col h-full overflow-hidden">
       <div className={`px-4 py-4 border-b shrink-0 ${isLight ? "border-gray-200" : "border-white/10"}`}>

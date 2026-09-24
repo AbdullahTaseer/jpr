@@ -550,6 +550,8 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
         .vendor-policies h2 { color:#111827; font-size:1.1rem; font-weight:700; margin:1.5em 0 0.5em; padding-bottom:0.4em; border-bottom:1px solid #f3f4f6; }
         .vendor-policies h3 { color:#1f2937; font-size:0.95rem; font-weight:700; margin:1.2em 0 0.4em; }
         .vendor-policies p  { margin:0.5em 0; color:#4b5563; }
+        .vendor-policies span, .vendor-policies font { color: inherit !important; }
+        .vendor-policies [style*="color"] { color: inherit !important; }
         .vendor-policies ul,
         .vendor-policies ol { padding-left:1.4em; margin:0.5em 0; color:#4b5563; }
         .vendor-policies ul { list-style:disc; }

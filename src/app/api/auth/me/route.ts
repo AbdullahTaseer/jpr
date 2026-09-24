@@ -32,6 +32,26 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
+        if (!user.isActive) {
+            return NextResponse.json(
+                { error: "Account is deactivated", code: "ACCOUNT_INACTIVE" },
+                { status: 401 }
+            );
+        }
+
+        if (user.role === "VENDOR") {
+            const vendor = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { vendorStatus: true },
+            });
+            if (vendor?.vendorStatus !== "APPROVED") {
+                return NextResponse.json(
+                    { error: "Vendor account is not approved", code: "VENDOR_INACTIVE" },
+                    { status: 401 }
+                );
+            }
+        }
+
         return NextResponse.json({ user });
     } catch {
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
