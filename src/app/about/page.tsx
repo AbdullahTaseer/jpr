@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_PRODUCT_WHERE } from "@/lib/products";
 
 const unsplash = (id: string, w = 800, h = 600) =>
   `https://images.unsplash.com/photo-${id}?w=${w}&h=${h}&q=85&auto=format&fit=crop`;
@@ -21,22 +22,18 @@ const DEFAULT_TIMELINE = [
 ];
 
 export default async function AboutPage() {
-  const [members, cmsItems, missionProduct] = await Promise.all([
+  const [members, cmsItems, productCount] = await Promise.all([
     prisma.teamMember.findMany({ orderBy: { order: "asc" } }),
     prisma.pageContent.findMany({ where: { page: "about" } }),
-    prisma.product.findFirst({
-      where: { isActive: true, isFeatured: false, isNewArrival: false, images: { isEmpty: false } },
-      orderBy: { createdAt: "desc" },
-      select: { images: true },
-    }),
+    prisma.product.count({ where: PUBLIC_PRODUCT_WHERE }),
   ]);
 
   const cmsMap: Record<string, string> = {};
   cmsItems.forEach(item => { cmsMap[`${item.section}.${item.key}`] = item.value; });
   const c = (section: string, key: string, def: string) => cmsMap[`${section}.${key}`] ?? def;
 
-  const heroImage = c("hero", "image", "") || unsplash("1522202176988-66273c7fd55f", 1600, 900);
-  const missionImage = c("mission", "image", "") || missionProduct?.images[0] || unsplash("1521737711867-e3b97375f902", 800, 1000);
+  const founderPhoto = members.find(m => /founder|ceo/i.test(m.role))?.imageUrl || members[0]?.imageUrl || "";
+  const missionImage = c("mission", "image", "") || founderPhoto || unsplash("1556742049-0cfed4f6a45d", 800, 1000);
 
   const values = DEFAULT_VALUES.map((dv, i) => ({
     icon:  c("values", `${i}.icon`,  dv.icon),
@@ -54,23 +51,15 @@ export default async function AboutPage() {
     <div className="bg-white">
 
       {/* ── Hero ── */}
-      <section className="relative min-h-[60vh] flex items-center overflow-hidden">
-        <Image src={heroImage} fill alt="Our team"
-          className="object-cover object-center" sizes="100vw" priority unoptimized={!!cmsMap["hero.image"]} />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070C1B]/95 via-[#070C1B]/75 to-transparent" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-px w-10 bg-[#1B6FEB]" />
-              <span className="text-[#1B6FEB] text-xs font-black tracking-[0.25em] uppercase">Our Story</span>
-            </div>
-            <h1 className="font-display font-black text-white text-5xl lg:text-7xl leading-[0.95] mb-6">
-              {c("hero", "heading", "About Latter Day Shopping")}
-            </h1>
-            <p className="text-white/65 text-lg leading-relaxed max-w-md">
-              {c("hero", "subtext", "We are a community-driven marketplace built on the belief that commerce can be a force for good — connecting buyers who care with sellers who create with intention.")}
-            </p>
-          </div>
+      <section className="bg-gradient-to-br from-[#070C1B] via-[#0A1E4A] to-[#1B3A8A] py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="text-[#60A5FA] text-xs font-black uppercase tracking-[0.25em]">Our Story</span>
+          <h1 className="font-display font-black text-white text-5xl lg:text-7xl mt-4 mb-6 leading-tight">
+            {c("hero", "heading", "About Latter Day Shopping")}
+          </h1>
+          <p className="text-white/55 text-lg max-w-2xl mx-auto leading-relaxed">
+            {c("hero", "subtext", "We are a community-driven marketplace built on the belief that commerce can be a force for good — connecting buyers who care with sellers who create with intention.")}
+          </p>
         </div>
       </section>
 
@@ -91,7 +80,7 @@ export default async function AboutPage() {
             <div className="grid grid-cols-3 gap-6 pt-6 border-t border-gray-100">
               {[
                 { v: c("mission", "stat0.value", "2"),     l: c("mission", "stat0.label", "Businesses") },
-                { v: c("mission", "stat1.value", "100+"),  l: c("mission", "stat1.label", "Products") },
+                { v: productCount > 0 ? String(productCount) : c("mission", "stat1.value", "100+"),  l: c("mission", "stat1.label", "Products") },
                 { v: c("mission", "stat2.value", "2008"),  l: c("mission", "stat2.label", "Established") },
               ].map(s => (
                 <div key={s.l} className="text-center">

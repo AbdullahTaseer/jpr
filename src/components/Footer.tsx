@@ -17,16 +17,6 @@ const IcoMail = () => (
     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/>
   </svg>
 );
-const IcoPhone = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .18h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-  </svg>
-);
-const IcoClock = () => (
-  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </svg>
-);
 const IcoFB = () => (
   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
     <path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5L14.17.5C10.24.5 9.1 3.3 9.1 5.47V7.46H5.5v4h3.6V23.5h5.4V11.46h3.27Z"/>
@@ -57,7 +47,6 @@ export default function Footer() {
   const s = useSiteSettings();
   const logoSrc = s.logoUrl || "/images/logo.png";
   const email = s.email || "support@latterdayshopping.com";
-  const phone = s.phone?.trim() || "15415301941";
   const siteName = s.siteName || "Latter Day Shopping";
 
   const socialLinks = [
@@ -70,8 +59,6 @@ export default function Footer() {
 
   const contactItems = [
     { Icon: IcoMail,  label: "Email Us", value: email, href: `mailto:${email}` as string | null },
-    { Icon: IcoPhone, label: "Call Us", value: phone, href: `tel:${phone.replace(/\D/g, "")}` as string | null },
-    { Icon: IcoClock, label: "Hours", value: "Mon–Fri, 9am–6pm CST", href: null },
   ];
 
   return (
@@ -83,17 +70,16 @@ export default function Footer() {
 
           {/* Left — logo + socials */}
           <div className="flex flex-col items-start">
-            <Link href="/" className="inline-block mb-3">
+            <Link href="/" className="inline-block mb-6">
               <Image
                 src={logoSrc}
                 alt={siteName}
-                width={200}
-                height={50}
-                className="h-12 w-auto"
+                width={320}
+                height={80}
+                className="h-20 w-auto"
                 unoptimized={!!s.logoUrl}
               />
             </Link>
-            <p className="text-gray-400 text-sm mb-6">We Established in 2008</p>
             {socialLinks.length > 0 ? (
               <div className="flex flex-wrap gap-3">
                 {socialLinks.map(({ label, Icon, href }) => (

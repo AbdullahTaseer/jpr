@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_PRODUCT_WHERE } from "@/lib/products";
 
 const GRADIENTS = [
   "from-[#1B6FEB] to-[#0A2070]",
@@ -18,7 +19,7 @@ const GRADIENTS = [
 
 export default async function BrandsPage() {
   const brands = await prisma.brand.findMany({
-    include: { _count: { select: { products: true } } },
+    include: { _count: { select: { products: { where: PUBLIC_PRODUCT_WHERE } } } },
     orderBy: { name: "asc" },
   });
 

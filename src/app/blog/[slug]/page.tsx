@@ -182,7 +182,7 @@ export default function BlogDetailPage() {
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Category</span>
-                  <span className="font-semibold text-[#1B6FEB]">{blog.category}</span>
+                  <Link href={`/blog?category=${encodeURIComponent(blog.category)}`} className="font-semibold text-[#1B6FEB] hover:underline">{blog.category}</Link>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Author</span>

@@ -319,7 +319,7 @@ export default function Home() {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [featuredProducts, setFeaturedProducts] = useState<DbProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<DbProduct[]>([]);
-  const [popularCats, setPopularCats] = useState<DbCategory[]>([]);
+  const [allCats, setAllCats] = useState<DbCategory[]>([]);
   const [realStats, setRealStats] = useState<{ productCount: number; vendorCount: number } | null>(null);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingArrivals, setLoadingArrivals] = useState(true);
@@ -379,16 +379,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/products?featured=true&limit=8").then(r => r.json()).then(d => setFeaturedProducts(d.products ?? [])).catch(() => {}).finally(() => setLoadingFeatured(false));
+    fetch("/api/products?featured=true&brandedOnly=true&limit=8").then(r => r.json()).then(d => setFeaturedProducts(d.products ?? [])).catch(() => {}).finally(() => setLoadingFeatured(false));
   }, []);
 
   useEffect(() => {
-    fetch("/api/products?newArrival=true&limit=8").then(r => r.json()).then(d => setNewArrivals(d.products ?? [])).catch(() => {}).finally(() => setLoadingArrivals(false));
+    fetch("/api/products?newArrival=true&brandedOnly=true&limit=8").then(r => r.json()).then(d => setNewArrivals(d.products ?? [])).catch(() => {}).finally(() => setLoadingArrivals(false));
   }, []);
 
   useEffect(() => {
-    fetch("/api/categories?homepage=true").then(r => r.json())
-      .then(d => setPopularCats((d.categories ?? []).map((c: DbCategory & { _count?: { products: number } }) => ({ ...c, count: c._count?.products ?? 0 }))))
+    const withCount = (d: { categories?: (DbCategory & { _count?: { products: number } })[] }) =>
+      (d.categories ?? []).map(c => ({ ...c, count: c._count?.products ?? 0 }));
+    fetch("/api/categories").then(r => r.json())
+      .then(d => setAllCats(withCount(d)))
       .catch(() => {}).finally(() => setLoadingCats(false));
   }, []);
 
@@ -401,7 +403,8 @@ export default function Home() {
 
   // Real collections — categories that actually have products, paired with a real
   // product photo (not stock imagery) pulled from the products already fetched above.
-  const realCollections = popularCats.filter(cat => cat.count > 0);
+  // Categories that actually have products — used by both Shop by Collection and Popular Categories
+  const realCollections = allCats.filter(cat => cat.count > 0);
   const collectionThumb = (catName: string) =>
     [...featuredProducts, ...newArrivals].find(p => p.category?.name === catName)?.images[0];
   const collectionSlides = featuredProducts.slice(0, 5);
@@ -803,7 +806,7 @@ export default function Home() {
       )}
 
   
-      {(loadingCats || popularCats.some(cat => cat.count > 0)) && (
+      {(loadingCats || realCollections.length > 0) && (
         <section className="py-24 bg-gray-50/70">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
@@ -816,7 +819,7 @@ export default function Home() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {loadingCats
                 ? Array.from({ length: 4 }).map((_, i) => <CategoryCardSkeleton key={i} />)
-                : popularCats.filter(cat => cat.count > 0).map(cat => (
+                : realCollections.map(cat => (
                     <CategoryCard key={cat.id} id={cat.id} name={cat.name} img={cat.imageUrl || unsplash("1483985988355-763728e1935b", 600, 440)} />
                   ))
               }

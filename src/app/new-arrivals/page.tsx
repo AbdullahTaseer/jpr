@@ -1,12 +1,13 @@
 export const dynamic = 'force-dynamic';
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_PRODUCT_WHERE } from "@/lib/products";
 import NewArrivalsGrid from "@/components/NewArrivalsGrid";
 
 
 export default async function NewArrivalsPage() {
   const products = await prisma.product.findMany({
-    where: { isActive: true, isNewArrival: true },
+    where: { ...PUBLIC_PRODUCT_WHERE, isNewArrival: true },
     include: {
       vendor:   { select: { name: true, shopName: true } },
       category: { select: { id: true, name: true } },
@@ -41,20 +42,6 @@ export default async function NewArrivalsPage() {
               className="inline-flex items-center gap-2 bg-white text-[#1B6FEB] font-black px-8 py-3.5 rounded-full hover:bg-blue-50 transition-all shadow-xl hover:-translate-y-0.5 text-sm">
               Shop All New Arrivals →
             </Link>
-          </div>
-          <div className="flex flex-wrap gap-8 mt-12 pt-10 border-t border-white/[0.08]">
-            <div>
-              <p className="font-display font-black text-3xl text-white">{products.length}</p>
-              <p className="text-white/40 text-xs mt-0.5">New Products</p>
-            </div>
-            <div>
-              <p className="font-display font-black text-3xl text-white">10+</p>
-              <p className="text-white/40 text-xs mt-0.5">Vendors</p>
-            </div>
-            <div>
-              <p className="font-display font-black text-3xl text-white">10</p>
-              <p className="text-white/40 text-xs mt-0.5">Categories</p>
-            </div>
           </div>
         </div>
       </section>

@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   const newArrival  = searchParams.get("newArrival") === "true";
   const categoryId  = searchParams.get("categoryId") || undefined;
   const brandId     = searchParams.get("brandId") || undefined;
+  const brandedOnly = searchParams.get("brandedOnly") === "true";
   const vendorSlug  = searchParams.get("vendorSlug") || undefined;
   const search      = searchParams.get("search") || undefined;
   const minPrice    = searchParams.get("minPrice") ? parseFloat(searchParams.get("minPrice")!) : undefined;
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
       ...(featured    && { isFeatured: true }),
       ...(newArrival  && { isNewArrival: true }),
       ...(categoryId  && { categoryId }),
-      ...(brandId     && { brandId }),
+      ...(brandId     ? { brandId } : brandedOnly && { brandId: { not: null } }),
       ...(vendorSlug  && { vendor: { shopSlug: vendorSlug } }),
       ...(search      && { title: { contains: search, mode: "insensitive" } }),
       ...((minPrice !== undefined || maxPrice !== undefined) && {

@@ -18,10 +18,25 @@ type DbBrand    = { id: string; name: string };
 
 const FALLBACK_IMG = "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=600&q=85&auto=format&fit=crop";
 
+const PAGE_SIZE = 12;
+
+// Page numbers with ellipses, e.g. 1 … 4 5 6 … 9
+function pageList(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end   = Math.min(total - 1, current + 1);
+  if (start > 2) pages.push("…");
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < total - 1) pages.push("…");
+  pages.push(total);
+  return pages;
+}
+
 const SORTS = [
-  { label: "Newest First",       val: "new"        },
   { label: "Price: Low to High", val: "price-asc"  },
   { label: "Price: High to Low", val: "price-desc" },
+  { label: "Newest First",       val: "new"        },
 ];
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
@@ -68,13 +83,14 @@ function ShopInner() {
   const [newArrivalsOnly,setNewArrivalsOnly] = useState(() => searchParams.get("newArrival") === "true");
   const [minP,           setMinP]           = useState("");
   const [maxP,           setMaxP]           = useState("");
-  const [sort,           setSort]           = useState("new");
+  const [sort,           setSort]           = useState("price-asc");
   const [gridView,       setGridView]       = useState(true);
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/products").then(r => r.json()),
+      // Shop only lists products from our brands (Emergency Essentials, Secret Garden Bees)
+      fetch("/api/products?brandedOnly=true").then(r => r.json()),
       fetch("/api/categories").then(r => r.json()),
       fetch("/api/brands").then(r => r.json()),
     ]).then(([pd, cd, bd]) => {
@@ -102,6 +118,17 @@ function ShopInner() {
     if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
     return list;
   }, [products, search, selCats, selBrands, newArrivalsOnly, minP, maxP, sort]);
+
+  // Page resets to 1 whenever filters or sort change
+  const filterKey = JSON.stringify([search, selCats, selBrands, newArrivalsOnly, minP, maxP, sort]);
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const totalPages = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const page       = pageState.key === filterKey ? Math.min(pageState.page, totalPages) : 1;
+  const pageItems  = results.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const goToPage   = (n: number) => {
+    setPageState({ key: filterKey, page: n });
+    document.getElementById("shop-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const activeFilters = [
     ...(newArrivalsOnly ? [{ label: "New Arrivals", remove: () => setNewArrivalsOnly(false) }] : []),
@@ -215,16 +242,6 @@ function ShopInner() {
               <h1 className="font-display font-black text-white text-4xl lg:text-5xl leading-tight">All Products</h1>
               <p className="text-white/50 text-sm mt-2">Discover purposeful products from verified vendors</p>
             </div>
-            {/* Quick-filter buttons from real categories */}
-            <div className="flex flex-wrap gap-3">
-              {categories.slice(0, 3).map(cat => (
-                <button key={cat.id} onClick={() => toggleCat(cat.id)}
-                  className={`text-xs font-bold px-4 py-2 rounded-full transition-all
-                    ${selCats.includes(cat.id) ? "bg-white text-[#1B6FEB]" : "bg-white/10 text-white/70 hover:bg-white/20 border border-white/20"}`}>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -246,14 +263,18 @@ function ShopInner() {
             )}
 
             {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm">
+            <div id="shop-results" className="scroll-mt-24 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7 bg-white rounded-2xl px-5 py-4 border border-gray-100 shadow-sm">
               <div className="flex items-center gap-3">
                 <button className="lg:hidden flex items-center gap-2 text-sm font-bold text-gray-700 border border-gray-200 px-4 py-2 rounded-xl hover:border-[#1B6FEB] hover:text-[#1B6FEB] transition-colors"
                   onClick={() => setSidebarOpen(!sidebarOpen)}>
                   <IcoFilter /> Filters {activeFilters.length > 0 && <span className="bg-[#1B6FEB] text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">{activeFilters.length}</span>}
                 </button>
                 <p className="text-gray-500 text-sm">
-                  Showing <span className="font-black text-gray-900">{results.length}</span> of <span className="font-black text-gray-900">{products.length}</span> products
+                  {results.length > 0 ? (
+                    <>Showing <span className="font-black text-gray-900">{(page - 1) * PAGE_SIZE + 1}–{(page - 1) * PAGE_SIZE + pageItems.length}</span> of <span className="font-black text-gray-900">{results.length}</span> products</>
+                  ) : (
+                    <>Showing <span className="font-black text-gray-900">0</span> products</>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -298,7 +319,7 @@ function ShopInner() {
               </div>
             ) : gridView ? (
               <div className="grid grid-cols-2 xl:grid-cols-3 gap-5">
-                {results.map(p => {
+                {pageItems.map(p => {
                   const disc = p.comparePrice ? Math.round((1 - p.price / p.comparePrice) * 100) : null;
                   const badge = p.isNewArrival ? "NEW" : (p.comparePrice ? "SALE" : null);
                   const badgeColor = badge === "NEW" ? "bg-[#1B6FEB]" : "bg-rose-500";
@@ -344,7 +365,7 @@ function ShopInner() {
             ) : (
               /* List view */
               <div className="space-y-4">
-                {results.map(p => {
+                {pageItems.map(p => {
                   const disc = p.comparePrice ? Math.round((1 - p.price / p.comparePrice) * 100) : null;
                   const badge = p.isNewArrival ? "NEW" : (p.comparePrice ? "SALE" : null);
                   const badgeColor = badge === "NEW" ? "bg-[#1B6FEB]" : "bg-rose-500";
@@ -388,6 +409,31 @@ function ShopInner() {
                   );
                 })}
               </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+              <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 mt-10">
+                <button onClick={() => goToPage(page - 1)} disabled={page === 1}
+                  className="px-4 h-10 rounded-xl text-sm font-bold border-2 border-gray-200 text-gray-700 hover:border-[#1B6FEB] hover:text-[#1B6FEB] transition-colors disabled:opacity-40 disabled:pointer-events-none">
+                  ← Prev
+                </button>
+                {pageList(page, totalPages).map((n, i) =>
+                  n === "…" ? (
+                    <span key={`gap-${i}`} className="w-10 text-center text-gray-400 text-sm">…</span>
+                  ) : (
+                    <button key={n} onClick={() => goToPage(n)} aria-current={n === page ? "page" : undefined}
+                      className={`w-10 h-10 rounded-xl text-sm font-bold transition-colors
+                        ${n === page ? "bg-[#1B6FEB] text-white shadow-lg shadow-blue-200" : "border-2 border-gray-200 text-gray-700 hover:border-[#1B6FEB] hover:text-[#1B6FEB]"}`}>
+                      {n}
+                    </button>
+                  )
+                )}
+                <button onClick={() => goToPage(page + 1)} disabled={page === totalPages}
+                  className="px-4 h-10 rounded-xl text-sm font-bold border-2 border-gray-200 text-gray-700 hover:border-[#1B6FEB] hover:text-[#1B6FEB] transition-colors disabled:opacity-40 disabled:pointer-events-none">
+                  Next →
+                </button>
+              </nav>
             )}
           </div>
         </div>

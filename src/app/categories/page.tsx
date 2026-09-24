@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_PRODUCT_WHERE } from "@/lib/products";
 
 const FALLBACK = "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&h=440&q=85&auto=format&fit=crop";
 const GRADIENTS = [
@@ -19,7 +20,8 @@ const GRADIENTS = [
 
 export default async function CategoriesPage() {
   const categories = await prisma.category.findMany({
-    include: { _count: { select: { products: true } } },
+    where: { products: { some: PUBLIC_PRODUCT_WHERE } },
+    include: { _count: { select: { products: { where: PUBLIC_PRODUCT_WHERE } } } },
     orderBy: [{ showOnHomepage: "desc" }, { name: "asc" }],
   });
 

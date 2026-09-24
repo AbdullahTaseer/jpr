@@ -51,15 +51,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* ── Left brand panel ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0d1b3e 0%, #1B6FEB 60%, #3b82f6 100%)" }}>
-        <div className="absolute inset-0 hero-glow opacity-40" />
-
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }} />
-        <div className="absolute bottom-10 -right-16 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }} />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#070C1B]">
+        {/* Glows (match homepage hero) */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 -left-24 w-80 h-80 bg-[#1B6FEB]/25 rounded-full blur-[90px]" />
+          <div className="absolute bottom-1/3 right-10 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px]" />
+        </div>
+        {/* Dot grid */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: "radial-gradient(#fff 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           {/* Logo */}
@@ -70,21 +70,21 @@ export default function LoginPage() {
 
           {/* Centre copy */}
           <div className="space-y-6">
-            <div className="w-14 h-1 rounded-full bg-white/40" />
+            <div className="w-14 h-1 rounded-full bg-[#1B6FEB]" />
             <h1 className="font-display text-5xl font-bold text-white leading-tight">
               {c("hero", "heading", "Welcome back.")}
             </h1>
-            <p className="text-blue-100 text-lg leading-relaxed max-w-xs">
+            <p className="text-white/55 text-lg leading-relaxed max-w-xs">
               {c("hero", "subtext", "Sign in to manage your store, track orders, or continue shopping intentionally.")}
             </p>
           </div>
 
           {/* Stats row */}
-          <div className="flex gap-8">
-            {[["2", "Businesses"], ["2008", "Established"], ["100+", "Products"]].map(([n, l]) => (
+          <div className="flex gap-8 pt-8 border-t border-white/[0.08]">
+            {[["2", "Businesses"], ["100+", "Products"], ["2008", "Established"]].map(([n, l]) => (
               <div key={l}>
                 <p className="text-white text-2xl font-bold">{n}</p>
-                <p className="text-blue-200 text-sm">{l}</p>
+                <p className="text-white/40 text-sm">{l}</p>
               </div>
             ))}
           </div>
@@ -103,9 +103,9 @@ export default function LoginPage() {
 
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900">{c("form", "heading", "Sign in")}</h2>
-            <p className="text-gray-500 mt-1 text-sm">
+            <p className="text-gray-700 mt-2 text-base font-semibold">
               Don&apos;t have an account?{" "}
-              <Link href="/register" className="font-medium" style={{ color: "#1B6FEB" }}>
+              <Link href="/register" className="font-bold hover:underline" style={{ color: "#1B6FEB" }}>
                 Create one
               </Link>
             </p>
@@ -188,9 +188,9 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-gray-100" />
           </div>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-base font-semibold text-gray-700">
             Want to sell on our platform?{" "}
-            <Link href="/vendor/register" className="font-medium" style={{ color: "#1B6FEB" }}>
+            <Link href="/vendor/register" className="font-bold hover:underline" style={{ color: "#1B6FEB" }}>
               {c("form", "vendorCta", "Apply as a Vendor")}
             </Link>
           </p>

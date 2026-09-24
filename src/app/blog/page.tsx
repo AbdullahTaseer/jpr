@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type Post = {
   id: string; title: string; slug: string; excerpt: string | null; category: string;
@@ -15,10 +16,11 @@ function timeAgo(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
-export default function BlogPage() {
+function BlogInner() {
+  const searchParams = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCat, setActiveCat] = useState("All");
+  const [activeCat, setActiveCat] = useState(() => searchParams.get("category") ?? "All");
   const [cms, setCms] = useState<Record<string, string>>({});
   const c = (section: string, key: string, def: string) => cms[`${section}.${key}`] ?? def;
 
@@ -30,9 +32,7 @@ export default function BlogPage() {
     fetch("/api/cms/blog").then(r => r.json()).then(d => setCms(d.content ?? {})).catch(() => {});
   }, []);
 
-  const featured = posts.find(p => p.isFeatured) ?? posts[0] ?? null;
-  const rest = posts.filter(p => p !== featured);
-  const filtered = activeCat === "All" ? rest : rest.filter(p => p.category === activeCat);
+  const filtered = activeCat === "All" ? posts : posts.filter(p => p.category === activeCat);
 
   const visibleCats = CATS.filter(c => c === "All" || posts.some(p => p.category === c));
 
@@ -64,53 +64,9 @@ export default function BlogPage() {
         </div>
       ) : (
         <>
-          {/* Featured post */}
-          {featured && (
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <Link href={`/blog/${featured.slug}`}
-                className="group relative rounded-[2rem] overflow-hidden shadow-2xl flex cursor-pointer hover:shadow-[0_30px_80px_rgba(27,111,235,0.2)] transition-shadow duration-500 block">
-                <div className="grid grid-cols-1 lg:grid-cols-2 w-full min-h-[420px]">
-                  <div className="relative min-h-[280px]">
-                    {featured.featuredImage ? (
-                      <Image src={featured.featuredImage} fill alt={featured.title}
-                        className="object-cover object-top group-hover:scale-105 transition-transform duration-700" sizes="50vw" />
-                    ) : (
-                      <div className="absolute inset-0 bg-gradient-to-br from-[#1B6FEB] to-[#0A1E4A]" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#070C1B]/60" />
-                    <div className="absolute top-6 left-6">
-                      <span className="bg-[#1B6FEB] text-white text-xs font-black px-3 py-1.5 rounded-full">{featured.category}</span>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-br from-[#060B17] to-[#0D2A5E] p-10 lg:p-14 flex flex-col justify-center">
-                    <div className="inline-flex w-fit bg-white/10 border border-white/15 text-white/70 text-[11px] font-black tracking-widest uppercase px-4 py-1.5 rounded-full mb-5">
-                      ⭐ Featured Post
-                    </div>
-                    <h2 className="font-display font-black text-white text-3xl lg:text-4xl leading-tight mb-4">
-                      {featured.title}
-                    </h2>
-                    {featured.excerpt && <p className="text-white/55 text-sm leading-relaxed mb-8">{featured.excerpt}</p>}
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white font-black">
-                        {featured.author.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-white font-bold text-sm">{featured.author}</p>
-                        <p className="text-white/40 text-xs">{timeAgo(featured.createdAt)}{featured.readTime ? ` · ${featured.readTime} min read` : ""}</p>
-                      </div>
-                    </div>
-                    <span className="inline-flex w-fit items-center gap-2 bg-white text-[#1B6FEB] font-black px-6 py-3 rounded-full group-hover:bg-blue-50 transition-all group-hover:-translate-y-0.5 shadow-lg text-sm">
-                      Read Article →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </section>
-          )}
-
           {/* Category filter */}
           {visibleCats.length > 1 && (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 mb-10">
               <div className="flex flex-wrap gap-2">
                 {visibleCats.map(c => (
                   <button key={c} onClick={() => setActiveCat(c)}
@@ -124,7 +80,7 @@ export default function BlogPage() {
           )}
 
           {/* Posts grid */}
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+          <section className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 ${visibleCats.length > 1 ? "" : "pt-16"}`}>
             {filtered.length === 0 ? (
               <div className="text-center py-20">
                 <p className="text-5xl mb-4">📭</p>
@@ -172,5 +128,13 @@ export default function BlogPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense>
+      <BlogInner />
+    </Suspense>
   );
 }

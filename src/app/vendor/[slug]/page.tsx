@@ -5,14 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Star, Package, CalendarDays, Users, ShieldCheck,
-  ChevronLeft, MessageSquare, ExternalLink,
+  ChevronLeft, MessageSquare,
   Award, TrendingUp, Clock, FileText, Tag,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Member  = { id: string; name: string; designation: string | null; imageUrl: string | null };
 type Review  = { id: string; rating: number; comment: string; createdAt: string; user: { name: string } };
-type Product = { id: string; title: string; slug: string; price: number; comparePrice: number | null; images: string[]; isNewArrival: boolean; isFeatured: boolean };
+type Product = { id: string; title: string; slug: string; price: number; comparePrice: number | null; images: string[]; isNewArrival: boolean; isFeatured: boolean; category: { id: string; name: string } | null };
 
 type Vendor = {
   id: string;
@@ -162,6 +162,7 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
   const [vendor, setVendor]     = useState<Vendor | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [tab, setTab]           = useState<Tab>("products");
+  const [catFilter, setCatFilter] = useState<string>("all");
   const [loading, setLoading]   = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -172,7 +173,7 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
     setLoading(true);
     Promise.all([
       fetch(`/api/vendors/${slug}`).then(r => r.json()),
-      fetch(`/api/products?vendorSlug=${slug}&limit=20`).then(r => r.json()).catch(() => ({ products: [] })),
+      fetch(`/api/products?vendorSlug=${slug}&sort=price-asc`).then(r => r.json()).catch(() => ({ products: [] })),
     ]).then(([vd, pd]) => {
       if (vd.error) { setNotFound(true); return; }
       setVendor(vd.vendor);
@@ -182,6 +183,14 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
   }, [slug]);
 
   useEffect(() => { load(); }, [load]);
+
+  // After a review is posted, refresh only the vendor (rating, count, list) without the full-page spinner
+  const reloadVendor = useCallback(() => {
+    if (!slug) return;
+    fetch(`/api/vendors/${slug}`, { cache: "no-store" }).then(r => r.json())
+      .then(vd => { if (!vd.error) setVendor(vd.vendor); })
+      .catch(() => {});
+  }, [slug]);
 
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -215,6 +224,19 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
     : new Date(vendor.createdAt).getFullYear();
   const yearsActive = new Date().getFullYear() - sinceYear;
   const ratingCount = vendor.vendorReviews.length;
+
+  // Product categories for this vendor, in the order they first appear, with counts
+  const vendorCats = Array.from(
+    products.reduce((m, p) => {
+      if (p.category) m.set(p.category.id, { ...p.category, count: (m.get(p.category.id)?.count ?? 0) + 1 });
+      return m;
+    }, new Map<string, { id: string; name: string; count: number }>()).values()
+  );
+  const uncategorised = products.filter(p => !p.category);
+  const productGroups = [
+    ...vendorCats.map(c => ({ key: c.id, name: c.name, items: products.filter(p => p.category?.id === c.id) })),
+    ...(uncategorised.length ? [{ key: "other", name: "Other", items: uncategorised }] : []),
+  ].filter(g => catFilter === "all" || g.key === catFilter);
 
   const TABS: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "products", label: `Products (${vendor._count.products})`, icon: <Package className="w-4 h-4" /> },
@@ -344,17 +366,36 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {products.map(p => <ProductCard key={p.id} product={p} />)}
-                </div>
-                {products.length >= 20 && (
-                  <div className="text-center mt-10">
-                    <Link href={`/shop?vendorSlug=${vendor.shopSlug}`}
-                      className="inline-flex items-center gap-2 text-[#1B6FEB] text-sm font-bold border-2 border-[#1B6FEB]/30 px-8 py-3 rounded-full hover:bg-[#1B6FEB] hover:text-white transition-all">
-                      View All Products <ExternalLink className="w-4 h-4" />
-                    </Link>
+                {/* Category filter — only when the vendor's products span more than one category */}
+                {vendorCats.length > 1 && (
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {[{ id: "all", name: "All Products", count: products.length }, ...vendorCats].map(c => (
+                      <button key={c.id} onClick={() => setCatFilter(c.id)}
+                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all
+                          ${catFilter === c.id
+                            ? "bg-[#1B6FEB] text-white shadow-md shadow-blue-200"
+                            : "bg-gray-50 border border-gray-200 text-gray-600 hover:border-[#1B6FEB] hover:text-[#1B6FEB]"}`}>
+                        {c.name} <span className={catFilter === c.id ? "text-white/70" : "text-gray-400"}>({c.count})</span>
+                      </button>
+                    ))}
                   </div>
                 )}
+
+                <div className="space-y-12">
+                  {productGroups.map(g => (
+                    <section key={g.key}>
+                      {vendorCats.length > 1 && (
+                        <h3 className="text-gray-900 font-black text-xl mb-5 flex items-center gap-2">
+                          <Tag className="w-5 h-5 text-[#1B6FEB]" /> {g.name}
+                          <span className="text-gray-400 text-sm font-semibold">({g.items.length})</span>
+                        </h3>
+                      )}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        {g.items.map(p => <ProductCard key={p.id} product={p} />)}
+                      </div>
+                    </section>
+                  ))}
+                </div>
               </>
             )}
           </div>
@@ -502,7 +543,7 @@ export default function VendorPublicPage({ params }: { params: Promise<{ slug: s
                   </div>
                 )}
 
-                {vendor.shopSlug && <ReviewForm slug={vendor.shopSlug} onSuccess={load} />}
+                {vendor.shopSlug && <ReviewForm slug={vendor.shopSlug} onSuccess={reloadVendor} />}
               </div>
 
               {/* Right: review list */}

@@ -87,6 +87,8 @@ export default function Header() {
 
   const isShopActive = path.startsWith("/shop") || path.startsWith("/categories") || path.startsWith("/brands") || path.startsWith("/new-arrivals");
 
+  const showVendorCta = authUser !== undefined && authUser?.role !== "VENDOR" && authUser?.role !== "ADMIN";
+
   const dashHref =
     authUser?.role === "ADMIN" ? "/admin-dashboard" :
       authUser?.role === "VENDOR" ? "/vendor-dashboard" :
@@ -98,11 +100,9 @@ export default function Header() {
       {s.announcementEnabled && s.announcementText && (
         <div className="text-white text-xs text-center py-2.5 px-4 font-medium tracking-wide" style={{ backgroundColor: s.announcementBg }}>
           <span dangerouslySetInnerHTML={{ __html: s.announcementText }} />
-          {(s.email || s.phone) && (
+          {s.email && (
             <span className="hidden sm:inline ml-6 pl-6 border-l border-white/25">
-              {s.email && <> {s.email}</>}
-              {s.email && s.phone && " || "}
-              {s.phone && <> {s.phone}</>}
+              {s.email}
             </span>
           )}
         </div>
@@ -125,17 +125,17 @@ export default function Header() {
                   return (
                     <div key={link.label} className="relative group">
                       {/* Trigger */}
-                      <Link href={link.href}
-                        className={`text-sm font-semibold transition-colors flex items-center gap-1 relative pb-1
+                      <button type="button" aria-haspopup="menu"
+                        className={`text-sm font-semibold transition-colors flex items-center gap-1 relative pb-1 cursor-default
                           ${isShopActive ? "text-[#1B6FEB]" : "text-gray-700 hover:text-[#1B6FEB]"}`}>
                         {link.label}
                         <IcoChevDown />
                         <span className={`absolute -bottom-1 left-0 h-0.5 bg-[#1B6FEB] rounded-full transition-all duration-300
                           ${isShopActive ? "w-full" : "w-0 group-hover:w-full"}`} />
-                      </Link>
+                      </button>
 
                       {/* Dropdown panel */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 w-64">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 w-64">
                         <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
                           <div className="p-1.5">
                             {SHOP_LINKS.map(item => (
@@ -145,11 +145,6 @@ export default function Header() {
                                 <p className="text-[11px] text-gray-400">{item.desc}</p>
                               </Link>
                             ))}
-                          </div>
-                          <div className="border-t border-gray-100 px-4 py-3 bg-gray-50">
-                            <Link href="/shop" className="text-xs font-bold text-[#1B6FEB] hover:underline">
-                              View all products →
-                            </Link>
                           </div>
                         </div>
                       </div>
@@ -180,6 +175,12 @@ export default function Header() {
                     </a>
                   ))}
                 </div>
+              )}
+              {showVendorCta && (
+                <Link href="/vendor"
+                  className="border-2 border-[#1B6FEB] text-[#1B6FEB] text-sm font-bold px-5 py-2 rounded-full hover:bg-[#1B6FEB] hover:text-white transition-all">
+                  BECOME A VENDOR
+                </Link>
               )}
               {authUser ? (
                 <Link href={dashHref}
@@ -239,6 +240,11 @@ export default function Header() {
                 </Link>
               );
             })}
+            {showVendorCta && (
+              <Link href="/vendor" onClick={() => setMobileOpen(false)} className="block text-center border-2 border-[#1B6FEB] text-[#1B6FEB] text-sm font-bold px-5 py-2.5 rounded-full mt-4">
+                BECOME A VENDOR
+              </Link>
+            )}
             {authUser ? (
               <Link href={dashHref} className="flex items-center justify-center gap-2 bg-[#1B6FEB] text-white text-sm font-bold px-5 py-3 rounded-full mt-4">
                 <IcoDashboard />
