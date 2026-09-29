@@ -1,6 +1,7 @@
 "use client";
 
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import SessionGuard from "@/components/SessionGuard";
 import { AdminThemeProvider, useAdminTheme } from "@/context/AdminThemeContext";
 
 function AdminShell({ children }: { children: React.ReactNode }) {
@@ -12,6 +13,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
         theme === "dark" ? "bg-[#0a0a0a] text-white" : "bg-[#f4f6f9] text-gray-900"
       }`}
     >
+      <SessionGuard />
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-y-auto">{children}</div>
     </div>

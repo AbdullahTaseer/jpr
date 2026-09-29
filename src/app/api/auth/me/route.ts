@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         });
 
         if (!user) {
-            return NextResponse.json({ error: "User not found" }, { status: 404 });
+            return NextResponse.json({ error: "User not found", code: "ACCOUNT_DELETED" }, { status: 401 });
         }
 
         if (!user.isActive) {
