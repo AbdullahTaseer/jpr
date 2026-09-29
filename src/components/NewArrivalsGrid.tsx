@@ -63,7 +63,7 @@ export default function NewArrivalsGrid({ products }: { products: Product[] }) {
                 </div>
                 {disc && <span className="text-emerald-600 text-xs font-bold">Save {disc}%</span>}
               </div>
-              <p className="text-emerald-500 text-[10px] font-bold mt-1.5 mb-3">✓ Free Shipping · In stock</p>
+              <p className="text-emerald-500 text-[10px] font-bold mt-1.5 mb-3">✓ In stock</p>
               <div className="w-full text-center text-xs font-bold text-[#1B6FEB] border-2 border-[#1B6FEB]/25 py-2.5 rounded-2xl group-hover:bg-[#1B6FEB] group-hover:text-white group-hover:border-[#1B6FEB] transition-all duration-200">
                 VIEW DETAIL
               </div>

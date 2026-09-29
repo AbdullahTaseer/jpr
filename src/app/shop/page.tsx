@@ -353,7 +353,7 @@ function ShopInner() {
                           </div>
                           {disc && <span className="text-emerald-600 text-xs font-bold">Save {disc}%</span>}
                         </div>
-                        <p className="text-emerald-500 text-[10px] font-bold mb-3">✓ Free Shipping · In stock</p>
+                        <p className="text-emerald-500 text-[10px] font-bold mb-3">✓ In stock</p>
                         <div className="w-full text-xs font-bold text-center text-[#1B6FEB] border-2 border-[#1B6FEB]/25 py-2.5 rounded-2xl group-hover:bg-[#1B6FEB] group-hover:text-white group-hover:border-[#1B6FEB] transition-all duration-200">
                           VIEW DETAIL
                         </div>
@@ -389,7 +389,7 @@ function ShopInner() {
                           </p>
                           <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1 line-clamp-1">{p.title}</h3>
                           {p.brand && <p className="text-[10px] text-gray-400 font-medium mb-2">{p.brand.name}</p>}
-                          <p className="text-emerald-500 text-[10px] font-bold">✓ Free Shipping · In stock</p>
+                          <p className="text-emerald-500 text-[10px] font-bold">✓ In stock</p>
                         </div>
                         <div className="flex items-center justify-between mt-3">
                           <div className="flex items-baseline gap-2">

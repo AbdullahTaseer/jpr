@@ -73,7 +73,7 @@ const IcoMail = () => (
 );
 
 const TRUST = [
-  { Icon: IcoShipping, title: "Free Shipping & Return", desc: "Reliable delivery and easy returns for a smooth, worry-free experience" },
+  { Icon: IcoShipping, title: "Easy Returns", desc: "Reliable delivery and easy returns for a smooth, worry-free experience" },
   { Icon: IcoShield, title: "Money Back Guarantee", desc: "Shop with confidence knowing every purchase is fully protected" },
   { Icon: IcoSupport, title: "24/7 Online Support", desc: "Our team is available around the clock whenever you need help" },
 ];
@@ -253,11 +253,9 @@ function ProductCard({ productId, slug, name, price, oldPrice, img, badge, vendo
           {discPct && <span className="text-emerald-600 text-xs font-bold">Save {discPct}%</span>}
         </div>
 
-        {/* Free shipping */}
+        {/* Stock */}
         <div className="flex items-center gap-1 mt-2 mb-3">
-          <span className="text-emerald-500 text-[10px] font-bold">✓ Free Shipping</span>
-          <span className="text-gray-300 text-[10px]">·</span>
-          <span className="text-gray-400 text-[10px]">In stock</span>
+          <span className="text-emerald-500 text-[10px] font-bold">✓ In stock</span>
         </div>
 
         <Link href={detailHref} className="block w-full text-xs font-bold text-center text-[#1B6FEB] border-2 border-[#1B6FEB]/25 py-2.5 rounded-2xl hover:bg-[#1B6FEB] hover:text-white hover:border-[#1B6FEB] transition-all duration-200 tracking-wide">

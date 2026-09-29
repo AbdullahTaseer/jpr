@@ -79,3 +79,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: msg }, { status: 500 });
     }
 }
+
+export async function DELETE(req: NextRequest) {
+    const vendor = await requireVendor(req);
+    if (!vendor) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json().catch(() => null);
+    const ids = Array.isArray(body?.ids) ? body.ids.filter((id: unknown): id is string => typeof id === "string") : [];
+    if (ids.length === 0) return NextResponse.json({ error: "ids must be a non-empty array" }, { status: 400 });
+
+    // Scoped to the vendor so they can only delete their own products
+    const { count } = await prisma.product.deleteMany({ where: { id: { in: ids }, vendorId: vendor.userId } });
+    return NextResponse.json({ success: true, count });
+}

@@ -74,7 +74,7 @@ prisma/
 ### Homepage (`/`)
 The richest page — contains:
 - **Hero section**: Split dark/image layout, headline, CTAs ("Shop Now", "Become a Vendor"), live stats
-- **Trust badges**: Free Shipping & Return · Money Back Guarantee · 24/7 Support
+- **Trust badges**: Easy Returns · Money Back Guarantee · 24/7 Support
 - **New Arrivals grid**: 8 products (4-column grid with product cards)
 - **Trendy Fashion slider**: Auto-advancing 4-slide image carousel with prev/next controls
 - **Popular Categories grid**: 8 category cards linking to `/shop`

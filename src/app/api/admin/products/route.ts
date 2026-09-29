@@ -78,3 +78,15 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ product }, { status: 201 });
 }
+
+export async function DELETE(req: NextRequest) {
+    const admin = await requireAdmin(req);
+    if (!admin) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await req.json().catch(() => null);
+    const ids = Array.isArray(body?.ids) ? body.ids.filter((id: unknown): id is string => typeof id === "string") : [];
+    if (ids.length === 0) return NextResponse.json({ error: "ids must be a non-empty array" }, { status: 400 });
+
+    const { count } = await prisma.product.deleteMany({ where: { id: { in: ids } } });
+    return NextResponse.json({ ok: true, count });
+}

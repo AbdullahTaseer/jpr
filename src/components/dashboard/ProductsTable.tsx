@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Checkbox from "./Checkbox";
 
 type Product = {
   id: string;
@@ -51,7 +52,9 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 export default function ProductsTable() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deleteIds, setDeleteIds] = useState<string[] | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const showToast = (message: string, type: "success" | "error") => setToast({ message, type });
@@ -63,6 +66,17 @@ export default function ProductsTable() {
       .catch(() => showToast("Failed to load products", "error"))
       .finally(() => setLoading(false));
   }, []);
+
+  const allSelected = products.length > 0 && products.every((p) => selected.has(p.id));
+  const someSelected = !allSelected && products.some((p) => selected.has(p.id));
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const toggleSelectAll = () => setSelected(allSelected ? new Set() : new Set(products.map((p) => p.id)));
 
   const toggleStatus = async (id: string) => {
     const product = products.find((p) => p.id === id);
@@ -84,16 +98,25 @@ export default function ProductsTable() {
   };
 
   const doDelete = async () => {
-    if (!deleteId) return;
+    if (!deleteIds?.length) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`/api/vendor/products/${deleteId}`, { method: "DELETE" });
+      const res = await fetch("/api/vendor/products", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: deleteIds }),
+      });
       if (!res.ok) throw new Error("Failed");
-      setProducts((prev) => prev.filter((p) => p.id !== deleteId));
-      showToast("Product deleted", "success");
+      const { count } = await res.json();
+      const removed = new Set(deleteIds);
+      setProducts((prev) => prev.filter((p) => !removed.has(p.id)));
+      setSelected((prev) => new Set([...prev].filter((id) => !removed.has(id))));
+      showToast(count === 1 ? "Product deleted" : `${count} products deleted`, "success");
     } catch {
-      showToast("Failed to delete product", "error");
+      showToast(deleteIds.length === 1 ? "Failed to delete product" : "Failed to delete products", "error");
     }
-    setDeleteId(null);
+    setDeleting(false);
+    setDeleteIds(null);
   };
 
   if (loading) {
@@ -107,11 +130,42 @@ export default function ProductsTable() {
   return (
     <>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {selected.size > 0 && (
+        <div className="flex items-center justify-between gap-4 bg-[#1a1a1a] border border-white/10 rounded-xl px-4 py-3">
+          <p className="text-white text-sm">
+            <span className="font-semibold">{selected.size}</span> selected
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelected(new Set())}
+              className="px-4 py-2 rounded-lg border border-white/10 text-[#9ca3af] text-sm hover:border-white/20 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setDeleteIds([...selected])}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors"
+            >
+              <IcoTrash />
+              Delete selected
+            </button>
+          </div>
+        </div>
+      )}
       <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/10">
+                <th className="pl-5 py-4 w-4">
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={someSelected}
+                    onChange={toggleSelectAll}
+                    disabled={products.length === 0}
+                    label="Select all products"
+                  />
+                </th>
                 {["Image", "Name", "Category", "Brand", "Price", "Clicks", "Status", "Actions"].map(h => (
                   <th key={h} className="text-left px-5 py-4 text-xs font-semibold text-[#6b7280] uppercase tracking-wide whitespace-nowrap">{h}</th>
                 ))}
@@ -120,11 +174,14 @@ export default function ProductsTable() {
             <tbody>
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-12 text-center text-[#6b7280] text-sm">No products yet. Add your first product!</td>
+                  <td colSpan={9} className="px-5 py-12 text-center text-[#6b7280] text-sm">No products yet. Add your first product!</td>
                 </tr>
               ) : (
                 products.map(p => (
-                  <tr key={p.id} className="border-b border-white/5 hover:bg-white/3 transition-colors">
+                  <tr key={p.id} className={`border-b border-white/5 transition-colors ${selected.has(p.id) ? "bg-[#1B6FEB]/5" : "hover:bg-white/3"}`}>
+                    <td className="pl-5 py-4">
+                      <Checkbox checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} label={`Select ${p.title}`} />
+                    </td>
                     <td className="px-5 py-4">
                       <div className="w-12 h-12 rounded-xl overflow-hidden bg-[#2a2a2a] flex items-center justify-center">
                         {p.images?.[0] ? (
@@ -160,7 +217,7 @@ export default function ProductsTable() {
                           <IcoEdit />
                         </Link>
                         <button
-                          onClick={() => setDeleteId(p.id)}
+                          onClick={() => setDeleteIds([p.id])}
                           className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                         >
                           <IcoTrash />
@@ -175,17 +232,21 @@ export default function ProductsTable() {
         </div>
       </div>
 
-      {deleteId && (
+      {deleteIds && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-white font-semibold text-lg mb-2">Delete Product</h3>
-            <p className="text-[#9ca3af] text-sm mb-6">This action cannot be undone. The product will be permanently removed.</p>
+            <h3 className="text-white font-semibold text-lg mb-2">
+              {deleteIds.length === 1 ? "Delete Product" : `Delete ${deleteIds.length} Products`}
+            </h3>
+            <p className="text-[#9ca3af] text-sm mb-6">
+              This action cannot be undone. {deleteIds.length === 1 ? "The product" : "These products"} will be permanently removed.
+            </p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-[#9ca3af] text-sm font-medium hover:border-white/20 transition-colors">
+              <button onClick={() => setDeleteIds(null)} disabled={deleting} className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-[#9ca3af] text-sm font-medium hover:border-white/20 transition-colors">
                 Cancel
               </button>
-              <button onClick={doDelete} className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors">
-                Delete
+              <button onClick={doDelete} disabled={deleting} className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors disabled:opacity-50">
+                {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
