@@ -30,10 +30,133 @@ const STATUS_LABEL: Record<string, string> = {
 const IcoCheck = () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>;
 const IcoX     = () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>;
 const IcoBan   = () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M4.93 4.93l14.14 14.14"/></svg>;
+const IcoKey   = () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>;
 const IcoTrash = () => <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>;
 
 function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function generatePassword() {
+  // No ambiguous characters (0/O, 1/l/I) so it's easy to read out to the vendor
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  const bytes = crypto.getRandomValues(new Uint32Array(14));
+  return Array.from(bytes, b => chars[b % chars.length]).join("");
+}
+
+function ResetPasswordModal({ vendor, onClose, onDone }: {
+  vendor: Vendor;
+  onClose: () => void;
+  onDone: (msg: string, ok: boolean) => void;
+}) {
+  const [mode, setMode] = useState<"email" | "set">("email");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit() {
+    setError("");
+    if (mode === "set" && password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/vendors/${vendor.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mode === "email" ? { mode } : { mode, password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setError(data.error || "Failed to reset password"); return; }
+      onDone(mode === "email" ? `Reset link sent to ${vendor.email}.` : "Password updated. Share it with the vendor securely.", true);
+      onClose();
+    } catch {
+      setError("Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* clipboard unavailable */ }
+  }
+
+  const option = (key: "email" | "set", title: string, desc: string) => (
+    <button type="button" onClick={() => { setMode(key); setError(""); }}
+      className={`w-full text-left p-3.5 rounded-xl border transition-colors ${mode === key ? "border-[#1B6FEB] bg-[#1B6FEB]/10" : "border-white/10 hover:border-white/20"}`}>
+      <div className="flex items-center gap-2.5">
+        <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${mode === key ? "border-[#1B6FEB]" : "border-white/25"}`}>
+          {mode === key && <span className="w-2 h-2 rounded-full bg-[#1B6FEB]" />}
+        </span>
+        <span className="text-white text-sm font-medium">{title}</span>
+      </div>
+      <p className="text-[#6b7280] text-xs mt-1 ml-[26px]">{desc}</p>
+    </button>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <h3 className="text-white font-semibold text-lg">Reset Password</h3>
+        <p className="text-[#9ca3af] text-sm mt-1 mb-5">
+          {vendor.name} · <span className="text-[#6b7280]">{vendor.email}</span>
+        </p>
+
+        <div className="space-y-2.5 mb-5">
+          {option("email", "Email a reset link", "The vendor gets a secure link, valid for 1 hour, to choose their own password.")}
+          {option("set", "Set a new password", "Set it yourself and share it with the vendor. Their old password stops working immediately.")}
+        </div>
+
+        {mode === "set" && (
+          <div className="mb-5">
+            <label className="block text-xs font-semibold text-[#6b7280] uppercase tracking-wide mb-2">New password</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  type={show ? "text" : "password"}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                  autoComplete="new-password"
+                  className="w-full bg-[#111] border border-white/10 rounded-xl pl-3.5 pr-16 py-2.5 text-white text-sm font-mono placeholder-[#4b5563] placeholder:font-sans focus:outline-none focus:border-[#1B6FEB]/60 transition-colors"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button type="button" onClick={() => setShow(v => !v)} className="text-[#6b7280] hover:text-white text-xs px-1.5 py-1 transition-colors">
+                    {show ? "Hide" : "Show"}
+                  </button>
+                </div>
+              </div>
+              <button type="button" onClick={() => { setPassword(generatePassword()); setShow(true); }}
+                className="px-3 rounded-xl border border-white/10 text-[#9ca3af] text-xs font-medium hover:border-white/20 hover:text-white transition-colors whitespace-nowrap">
+                Generate
+              </button>
+              <button type="button" onClick={copy} disabled={!password}
+                className="px-3 rounded-xl border border-white/10 text-[#9ca3af] text-xs font-medium hover:border-white/20 hover:text-white transition-colors disabled:opacity-40 whitespace-nowrap">
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
+
+        <div className="flex gap-3">
+          <button onClick={onClose} disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-[#9ca3af] text-sm hover:border-white/20 transition-colors">
+            Cancel
+          </button>
+          <button onClick={submit} disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-[#1B6FEB] text-white text-sm font-semibold hover:bg-[#1557D0] transition-colors disabled:opacity-50">
+            {saving ? (mode === "email" ? "Sending..." : "Saving...") : (mode === "email" ? "Send reset link" : "Set password")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function VendorsTable() {
@@ -44,6 +167,7 @@ export default function VendorsTable() {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [resetVendor, setResetVendor] = useState<Vendor | null>(null);
 
   const fetchVendors = useCallback(async () => {
     setLoading(true);
@@ -219,6 +343,12 @@ export default function VendorsTable() {
                           </button>
                         )}
                         <button
+                          onClick={() => setResetVendor(v)}
+                          title="Reset password"
+                          className="p-1.5 rounded-lg bg-[#1B6FEB]/10 text-[#1B6FEB] hover:bg-[#1B6FEB]/20 transition-colors">
+                          <IcoKey />
+                        </button>
+                        <button
                           onClick={() => setDeleteId(v.id)}
                           title="Delete"
                           className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
@@ -233,6 +363,10 @@ export default function VendorsTable() {
           </div>
         )}
       </div>
+
+      {resetVendor && (
+        <ResetPasswordModal vendor={resetVendor} onClose={() => setResetVendor(null)} onDone={showToast} />
+      )}
 
       {/* Delete confirm modal */}
       {deleteId && (

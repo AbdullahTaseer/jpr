@@ -142,6 +142,9 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-gray-700">
                   Password <span className="text-red-500">*</span>
                 </label>
+                <Link href="/forgot-password" className="text-sm font-semibold hover:underline" style={{ color: "#1B6FEB" }}>
+                  Forgot password?
+                </Link>
               </div>
               <div className="relative">
                 <input

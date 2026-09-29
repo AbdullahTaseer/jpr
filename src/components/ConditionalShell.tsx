@@ -6,7 +6,7 @@ import Footer from "./Footer";
 
 export default function ConditionalShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const noShell = ["/vendor-dashboard", "/admin-dashboard", "/user-dashboard", "/login", "/register", "/vendor/register"];
+  const noShell = ["/vendor-dashboard", "/admin-dashboard", "/user-dashboard", "/login", "/register", "/vendor/register", "/forgot-password", "/reset-password"];
   if (noShell.some((p) => path.startsWith(p))) return <>{children}</>;
   return (
     <>

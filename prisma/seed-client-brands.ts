@@ -379,25 +379,9 @@ async function seedBePrepared(vendorId: string, brandId: string, categoryId: str
   console.log("\n── Emergency Essentials / BePrepared products ──");
   console.log(`  affiliate id: ${AFF_ID === "XXXXXXXX" ? "PLACEHOLDER (set BEPREPARED_AFFILIATE_ID)" : AFF_ID}`);
 
-  // Homepage / best link as a featured storefront product
-  await upsertProduct({
-    title: "Shop Emergency Essentials at BePrepared",
-    slug: "ee-beprepared-storefront",
-    description:
-      "<p>Food storage and emergency preparedness supplies from Emergency Essentials / BePrepared. Explore freeze-dried foods, kits, water filtration, power, and more.</p>",
-    shortDesc: "Food storage & emergency preparedness supplies — BePrepared official store.",
-    price: 0,
-    images: ["https://www.beprepared.com/cdn/shop/files/BePrepared_Logo.png"],
-    redirectUrl: affUrl(),
-    vendorId,
-    categoryId,
-    brandId,
-    sku: "EE-HOME",
-    isFeatured: true,
-  });
-  console.log("  ✓ BePrepared storefront link");
+  // Only the 88 product links from the client doc. The homepage "best link" is not a product.
 
-  let count = 1;
+  let count = 0;
   for (const handle of BEPREPARED_HANDLES) {
     const encoded = encodeURI(handle);
     const remote = await fetchJson<{ product: ShopifyProduct }>(
@@ -425,8 +409,8 @@ async function seedBePrepared(vendorId: string, brandId: string, categoryId: str
       categoryId,
       brandId,
       sku: product ? `EE-${product.id}` : `EE-${slug(handle).slice(0, 40)}`,
-      isFeatured: count <= 6,
-      isNewArrival: count <= 12,
+      isFeatured: count < 6,
+      isNewArrival: count < 12,
     });
     count++;
     console.log(`  ✓ ${title}${product ? "" : " (meta fallback)"}`);

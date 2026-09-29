@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
-    "seed:client-brands": "tsx prisma/seed-client-brands.ts"
+    "seed:client-brands": "tsx prisma/seed-client-brands.ts",
+    "sync:prices": "tsx prisma/sync-prices.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

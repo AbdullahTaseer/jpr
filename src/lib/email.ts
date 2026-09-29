@@ -191,3 +191,55 @@ export async function sendVendorRejectedEmail(to: string, name: string, shopName
 </html>`,
     });
 }
+
+export async function sendPasswordResetEmail(to: string, name: string, url: string) {
+    const safeName = escapeHtml(name);
+    const safeUrl = escapeHtml(url);
+    await sendEmail({
+        to,
+        subject: "Reset your password — Latter Day Shopping",
+        html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f0f4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(27,111,235,0.10)">
+        <tr><td style="background:linear-gradient(135deg,#0d1b3e 0%,#1B6FEB 100%);padding:36px 40px">
+          <p style="margin:0;color:#ffffff;font-size:20px;font-weight:700">Latter Day Shopping</p>
+          <p style="margin:6px 0 0;color:rgba(255,255,255,0.6);font-size:12px;text-transform:uppercase">Account Security</p>
+        </td></tr>
+        <tr><td style="background:#1B6FEB;height:4px;font-size:0;line-height:0">&nbsp;</td></tr>
+        <tr><td style="padding:44px 40px 36px">
+          <h1 style="margin:0 0 10px;font-size:26px;font-weight:700;color:#0f172a">Hi ${safeName},</h1>
+          <p style="margin:0 0 32px;font-size:15px;color:#64748b;line-height:1.7">
+            We received a request to reset the password for your account. Click the button below to choose a new one.
+            This link expires in <strong style="color:#0f172a">1 hour</strong> and can only be used once.
+          </p>
+          <table cellpadding="0" cellspacing="0" style="margin-bottom:28px">
+            <tr><td style="background:#1B6FEB;border-radius:12px">
+              <a href="${safeUrl}"
+                 style="display:inline-block;color:#ffffff;font-weight:600;font-size:15px;padding:15px 32px;text-decoration:none">
+                Reset Password &rarr;
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0 0 8px;font-size:13px;color:#94a3b8;line-height:1.6">
+            If the button doesn&apos;t work, copy this link into your browser:
+          </p>
+          <p style="margin:0 0 28px;font-size:12px;color:#1B6FEB;word-break:break-all">${safeUrl}</p>
+          <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6">
+            Didn&apos;t request this? You can safely ignore this email — your password won&apos;t change.
+          </p>
+        </td></tr>
+        <tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #e2e8f0">
+          <p style="margin:0;font-size:12px;color:#94a3b8">&copy; ${new Date().getFullYear()} Latter Day Shopping. All rights reserved.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+    });
+}
