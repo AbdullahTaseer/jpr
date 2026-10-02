@@ -192,7 +192,7 @@ function ProductCard({ productId, slug, name, price, oldPrice, img, badge, vendo
     <div className="group bg-white rounded-3xl overflow-hidden transition-all duration-500 cursor-pointer border border-gray-100 hover:border-[#1B6FEB]/20 hover:shadow-2xl hover:shadow-[#1B6FEB]/10 hover:-translate-y-1.5">
       {/* Image */}
       <div className="relative h-56 overflow-hidden bg-gray-50">
-        <Image src={img} fill alt={name}
+        <ImageWithSkeleton src={img} alt={name} skeletonClassName="bg-gray-100"
           className="object-cover group-hover:scale-110 transition-transform duration-700"
           sizes="(max-width:640px)50vw,(max-width:1024px)33vw,25vw"
           unoptimized={!img.includes("unsplash.com") && !img.includes("res.cloudinary.com")} />
@@ -300,7 +300,7 @@ function BrandProductCard({ p }: { p: DbProduct }) {
     <div className="group bg-white overflow-hidden shrink-0 flex flex-col shadow-[0_10px_30px_rgba(10,40,110,0.18)] transition-transform duration-300 hover:-translate-y-1"
       style={{ width: c(281.4), height: c(420.26), borderRadius: c(20) }}>
       <div className="relative shrink-0 bg-gray-50 overflow-hidden" style={{ height: c(221) }}>
-        <Image src={img} fill alt={p.title} sizes="(max-width:1024px)230px,15vw"
+        <ImageWithSkeleton src={img} alt={p.title} sizes="(max-width:1024px)230px,15vw" skeletonClassName="bg-gray-100"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           unoptimized={!img.includes("unsplash.com") && !img.includes("res.cloudinary.com")} />
         {p.isNewArrival && (
@@ -323,6 +323,39 @@ function BrandProductCard({ p }: { p: DbProduct }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+function BrandProductCardSkeleton() {
+  return (
+    <div className="bg-white overflow-hidden shrink-0 flex flex-col animate-pulse"
+      style={{ width: c(281.4), height: c(420.26), borderRadius: c(20) }}>
+      <div className="shrink-0 bg-gray-100" style={{ height: c(221) }} />
+      <div className="flex flex-col flex-1" style={{ padding: `${c(14)} ${c(16)} ${c(16)}`, gap: c(10) }}>
+        <div className="bg-gray-100 rounded-full w-1/3" style={{ height: c(11) }} />
+        <div className="bg-gray-100 rounded-full w-5/6" style={{ height: c(15) }} />
+        <div className="bg-gray-100 rounded-full w-1/2" style={{ height: c(11) }} />
+        <div className="bg-gray-100 rounded-full w-1/4" style={{ height: c(18) }} />
+        <div className="mt-auto bg-gray-100" style={{ height: c(38), borderRadius: c(12) }} />
+      </div>
+    </div>
+  );
+}
+
+function ShopByBrandsSkeleton() {
+  return (
+    <section className="pb-24 [--u:0.55px] [--c:0.82px] lg:[--u:calc(min(100vw,1920px)/1920)] lg:[--c:var(--u)]">
+      <div className="mx-auto bg-gray-100 rounded-full animate-pulse"
+        style={{ width: `max(260px, ${u(420)})`, height: `max(36px, ${u(64)})`, marginBottom: `max(32px, ${u(65)})` }} />
+      <div className="relative flex flex-col lg:block lg:h-[calc(730*var(--u))]"
+        style={{ background: "radial-gradient(ellipse at center, #59A4FB 0%, #1B6FEB 100%)" }}>
+        <div className="h-72 lg:h-auto bg-[#1a1f2b] animate-pulse lg:absolute lg:inset-y-0 lg:left-0 lg:w-[calc(873*var(--u))]" />
+        <div className="flex overflow-hidden px-4 py-10 lg:p-0 lg:absolute lg:left-[calc(960*var(--u))] lg:top-[calc(165*var(--u))]"
+          style={{ gap: c(20) }}>
+          {Array.from({ length: 3 }).map((_, i) => <BrandProductCardSkeleton key={i} />)}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -462,6 +495,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<DbProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<DbProduct[]>([]);
   const [brandSlides, setBrandSlides] = useState<BrandSlide[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
   const [allCats, setAllCats] = useState<DbCategory[]>([]);
   const [realStats, setRealStats] = useState<{ productCount: number; vendorCount: number } | null>(null);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
@@ -529,19 +563,13 @@ export default function Home() {
     fetch("/api/products?newArrival=true&brandedOnly=true&limit=8").then(r => r.json()).then(d => setNewArrivals(d.products ?? [])).catch(() => {}).finally(() => setLoadingArrivals(false));
   }, []);
 
-  // Shop by Brands — each homepage brand with 3 of its own products (new arrivals first)
+  // Shop by Brands — each homepage brand comes with 3 of its own products (new arrivals first)
   useEffect(() => {
-    const getJson = (url: string) => fetch(url).then(r => r.json());
-    getJson("/api/brands?homepage=true")
-      .then((d: { brands?: DbBrand[] }) => Promise.all((d.brands ?? []).map(async brand => {
-        const fresh: DbProduct[] = (await getJson(`/api/products?brandId=${brand.id}&newArrival=true&limit=3`)).products ?? [];
-        if (fresh.length >= 3) return { brand, products: fresh };
-        const any: DbProduct[] = (await getJson(`/api/products?brandId=${brand.id}&limit=6`)).products ?? [];
-        const products = [...fresh, ...any.filter(p => !fresh.some(f => f.id === p.id))].slice(0, 3);
-        return { brand, products };
-      })))
-      .then(slides => setBrandSlides(slides.filter(s => s.products.length > 0)))
-      .catch(() => {});
+    fetch("/api/brands?homepage=true").then(r => r.json())
+      .then((d: { brands?: (DbBrand & { products: DbProduct[] })[] }) =>
+        setBrandSlides((d.brands ?? []).filter(b => b.products.length > 0).map(({ products, ...brand }) => ({ brand, products }))))
+      .catch(() => {})
+      .finally(() => setLoadingBrands(false));
   }, []);
 
   useEffect(() => {
@@ -866,7 +894,8 @@ export default function Home() {
         </section>
       )}
 
-      {cmsLoaded && brandSlides.length > 0 && <ShopByBrands slides={brandSlides} cms={c} />}
+      {(loadingBrands || !cmsLoaded) ? <ShopByBrandsSkeleton />
+        : brandSlides.length > 0 && <ShopByBrands slides={brandSlides} cms={c} />}
 
       {!loadingFeatured && collectionSlides.length > 0 && (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
