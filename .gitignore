@@ -1,1 +1,9 @@
 .env
+
+node_modules/
+.next/
+.next.zip
+.DS_Store
+tsconfig.tsbuildinfo
+next-env.d.ts
+src/generated/
