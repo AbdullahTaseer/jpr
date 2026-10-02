@@ -444,13 +444,13 @@ async function main() {
   const eeBrand = await upsertBrand({
     name: "Emergency Essentials",
     website: "https://www.beprepared.com/",
-    logoUrl: "https://ui-avatars.com/api/?name=Emergency+Essentials&background=1B6FEB&color=fff&size=128",
+    logoUrl: "https://res.cloudinary.com/dre9yontg/image/upload/v1787876858/jpr-uploads/xp1bujqdo11tqgxllalj.avif",
     showOnHomepage: true,
   });
   const sgBrand = await upsertBrand({
     name: "Secret Garden Bees",
     website: "https://secretgardenbees.com/",
-    logoUrl: "https://ui-avatars.com/api/?name=Secret+Garden+Bees&background=B45309&color=fff&size=128",
+    logoUrl: "https://res.cloudinary.com/dre9yontg/image/upload/v1790902249/jpr-uploads/fjgf3kmbrcul6byuk3ij.png",
     showOnHomepage: true,
   });
 

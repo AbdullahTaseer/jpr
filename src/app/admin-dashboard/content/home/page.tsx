@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useCmsPage } from "@/hooks/useCmsPage";
+import ImageUploadField from "@/components/dashboard/ImageUploadField";
+import { BRANDS_CMS_SECTION, BRANDS_DEFAULT_CTA, BRANDS_DEFAULT_HEADING, BRAND_OVERLAY_OPTIONS, brandDefaults } from "@/lib/brandShowcase";
 
 const inp = "w-full bg-[#242424] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-[#4b5563] focus:outline-none focus:border-[#1B6FEB]/60 transition-colors";
 const area = inp + " resize-none";
@@ -149,8 +151,15 @@ function HeroProductSlot({
     );
 }
 
+type HomeBrand = { id: string; name: string; slug: string };
+
 export default function ContentHomePage() {
     const { get, set, saveSection, saving, toast } = useCmsPage("home");
+    const [brands, setBrands] = useState<HomeBrand[]>([]);
+
+    useEffect(() => {
+        fetch("/api/brands?homepage=true").then(r => r.json()).then(d => setBrands(d.brands ?? [])).catch(() => {});
+    }, []);
 
     return (
         <div className="p-6 lg:p-8 space-y-6">
@@ -224,6 +233,32 @@ export default function ContentHomePage() {
                     <Field label="Heading"><input value={get("new_arrivals","heading","New Arrivals")} onChange={e=>set("new_arrivals","heading",e.target.value)} className={inp}/></Field>
                     <Field label="Subtext"><textarea rows={2} value={get("new_arrivals","subtext","Explore the latest additions from our growing community of vendors.")} onChange={e=>set("new_arrivals","subtext",e.target.value)} className={area}/></Field>
                 </Grid2>
+            </Section>
+
+            {/* ── Shop by Brands ── */}
+            <Section title="Shop by Brands Section" onSave={() => saveSection(BRANDS_CMS_SECTION)} saving={saving}>
+                <p className="text-[#6b7280] text-sm -mt-2">One slide per brand marked &quot;Show on homepage&quot; in Brands. Products, logos and the store link come from the brand itself.</p>
+                <Grid2>
+                    <Field label="Heading"><input value={get(BRANDS_CMS_SECTION,"heading",BRANDS_DEFAULT_HEADING)} onChange={e=>set(BRANDS_CMS_SECTION,"heading",e.target.value)} className={inp}/></Field>
+                    <Field label="Button Text"><input value={get(BRANDS_CMS_SECTION,"ctaText",BRANDS_DEFAULT_CTA)} onChange={e=>set(BRANDS_CMS_SECTION,"ctaText",e.target.value)} className={inp}/></Field>
+                </Grid2>
+                {brands.length === 0 && <p className="text-[#6b7280] text-sm">No brands are set to show on the homepage.</p>}
+                {brands.map(b => {
+                    const d = brandDefaults(b.slug, b.name);
+                    const k = (key: string) => `${b.slug}.${key}`;
+                    return (
+                        <div key={b.id} className="bg-[#242424] rounded-xl p-4 space-y-3">
+                            <p className="text-white text-sm font-semibold">{b.name}</p>
+                            <Field label="Description"><textarea rows={3} value={get(BRANDS_CMS_SECTION,k("description"),d.description)} onChange={e=>set(BRANDS_CMS_SECTION,k("description"),e.target.value)} className={area}/></Field>
+                            <ImageUploadField label="Banner Image" value={get(BRANDS_CMS_SECTION,k("image"),d.image)} onChange={v=>set(BRANDS_CMS_SECTION,k("image"),v)} />
+                            <Field label="Dark Overlay (keeps white text readable)">
+                                <select value={get(BRANDS_CMS_SECTION,k("overlay"),d.overlay)} onChange={e=>set(BRANDS_CMS_SECTION,k("overlay"),e.target.value)} className={inp}>
+                                    {BRAND_OVERLAY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                </select>
+                            </Field>
+                        </div>
+                    );
+                })}
             </Section>
 
             {/* ── Collections ── */}

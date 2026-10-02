@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useFavorites } from "@/context/FavoritesContext";
 import Image from "next/image";
 import Link from "next/link";
+import { BRANDS_CMS_SECTION, BRANDS_DEFAULT_CTA, BRANDS_DEFAULT_HEADING, brandDefaults } from "@/lib/brandShowcase";
 
 // ─── Unsplash helper ──────────────────────────────────────────────────────────
 const unsplash = (id: string, w = 800, h = 600) =>
@@ -266,6 +267,149 @@ function ProductCard({ productId, slug, name, price, oldPrice, img, badge, vendo
   );
 }
 
+// ─── Shop by Brands ───────────────────────────────────────────────────────────
+type DbBrand = {
+  id: string; name: string; slug: string; logoUrl: string | null;
+  storeSlug: string | null; bannerImage: string | null;
+};
+type BrandSlide = { brand: DbBrand; products: DbProduct[] };
+
+// Sizes below are the Figma "Shop by Brands" frame values (1920 × 730 per slide). On desktop
+// --u scales them to the viewport so the slide keeps the design's proportions; on mobile the
+// slide stacks and --u / --c are fixed so text stays readable.
+const u = (n: number) => `calc(${n} * var(--u))`;
+const c = (n: number) => `calc(${n} * var(--c))`;
+
+// Square/round logos fill the circle edge to edge; wide wordmarks are fitted inside it.
+function BrandLogo({ src, name }: { src: string; name: string }) {
+  const [square, setSquare] = useState(true);
+  return (
+    <div className="relative rounded-full bg-white overflow-hidden shrink-0" style={{ width: u(83.17), height: u(83.17) }}>
+      <Image src={src} fill alt={`${name} logo`} sizes="84px"
+        className={square ? "object-cover scale-[1.15]" : "object-contain p-[8%]"}
+        onLoad={e => setSquare(Math.abs(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight - 1) < 0.2)}
+        unoptimized={!src.includes("res.cloudinary.com")} />
+    </div>
+  );
+}
+
+function BrandProductCard({ p }: { p: DbProduct }) {
+  const img = p.images[0] || HERO_FALLBACK;
+  const brandName = p.brand?.name ?? p.vendor.shopName ?? p.vendor.name;
+  return (
+    <div className="group bg-white overflow-hidden shrink-0 flex flex-col shadow-[0_10px_30px_rgba(10,40,110,0.18)] transition-transform duration-300 hover:-translate-y-1"
+      style={{ width: c(281.4), height: c(420.26), borderRadius: c(20) }}>
+      <div className="relative shrink-0 bg-gray-50 overflow-hidden" style={{ height: c(221) }}>
+        <Image src={img} fill alt={p.title} sizes="(max-width:1024px)230px,15vw"
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          unoptimized={!img.includes("unsplash.com") && !img.includes("res.cloudinary.com")} />
+        {p.isNewArrival && (
+          <span className="absolute bg-[#3DBF7C] text-white font-bold rounded-full leading-none flex items-center"
+            style={{ left: c(12), top: c(12), height: c(21), padding: `0 ${c(9)}`, fontSize: c(10) }}>NEW</span>
+        )}
+      </div>
+      <div className="flex flex-col flex-1" style={{ padding: `${c(14)} ${c(16)} ${c(16)}` }}>
+        <p className="font-bold text-[#1B70EB] uppercase tracking-[0.08em] truncate" style={{ fontSize: c(11), lineHeight: c(13) }}>{brandName}</p>
+        <h3 className="font-semibold text-gray-900 line-clamp-2" style={{ fontSize: c(15), lineHeight: c(20), height: c(40), marginTop: c(6) }}>{p.title}</h3>
+        <p className="text-gray-400 truncate" style={{ fontSize: c(11), lineHeight: c(13), marginTop: c(4) }}>
+          {[p.category?.name, brandName].filter(Boolean).join(" · ")}
+        </p>
+        <p className="font-bold text-[#1B70EB]" style={{ fontSize: c(18), lineHeight: c(22), marginTop: c(10) }}>${p.price.toFixed(2)}</p>
+        <p className="font-semibold text-[#2FB36B]" style={{ fontSize: c(11), lineHeight: c(13), marginTop: c(4) }}>✓ In stock</p>
+        <Link href={`/shop/${p.slug}`}
+          className="mt-auto flex items-center justify-center font-semibold text-[#1B70EB] border-[1.5px] border-[#CFE0FB] tracking-wide hover:bg-[#1B70EB] hover:text-white hover:border-[#1B70EB] transition-colors"
+          style={{ height: c(38), borderRadius: c(12), fontSize: c(12) }}>
+          VIEW DETAIL
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function ShopByBrands({ slides, cms }: { slides: BrandSlide[]; cms: (section: string, key: string, def: string) => string }) {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const count = slides.length;
+
+  useEffect(() => {
+    if (count <= 1 || paused) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % count), 6000);
+    return () => clearInterval(t);
+  }, [count, paused]);
+
+  return (
+    <section className="pb-24 [--u:0.55px] [--c:0.82px] lg:[--u:calc(min(100vw,1920px)/1920)] lg:[--c:var(--u)]">
+      <h2 className="font-display font-black text-gray-900 text-center leading-tight px-4"
+        style={{ fontSize: `max(36px, ${u(64)})`, marginBottom: `max(32px, ${u(65)})` }}>{cms(BRANDS_CMS_SECTION, "heading", BRANDS_DEFAULT_HEADING)}</h2>
+      <div className="relative overflow-hidden" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+        <div className="flex transition-transform duration-700 ease-in-out" style={{ transform: `translateX(-${idx * 100}%)` }}>
+          {slides.map(({ brand, products }) => {
+            const storeHref = brand.storeSlug ? `/vendor/${brand.storeSlug}` : `/shop?brandId=${brand.id}`;
+            const defs = brandDefaults(brand.slug, brand.name);
+            const key = (k: string) => `${brand.slug}.${k}`;
+            const bg = cms(BRANDS_CMS_SECTION, key("image"), defs.image) || brand.bannerImage || products[0]?.images[0] || HERO_FALLBACK;
+            const overlay = Number(cms(BRANDS_CMS_SECTION, key("overlay"), defs.overlay)) || 0;
+            return (
+              <div key={brand.id} className="relative w-full shrink-0 flex flex-col lg:block lg:h-[calc(730*var(--u))]"
+                style={{ background: "radial-gradient(ellipse at center, #59A4FB 0%, #1B6FEB 100%)" }}>
+                {/* Brand banner */}
+                <div className="relative overflow-hidden bg-[#1a1f2b] py-14 lg:py-0 lg:absolute lg:inset-y-0 lg:left-0 lg:w-[calc(873*var(--u))]">
+                  <Image src={bg} fill alt={brand.name} className="object-cover" sizes="(max-width:1024px)100vw,46vw"
+                    unoptimized={!bg.includes("unsplash.com") && !bg.includes("res.cloudinary.com")} />
+                  {overlay > 0 && <div className="absolute inset-0 bg-[#1a1f2b]" style={{ opacity: overlay / 100 }} />}
+                  <div className="relative z-10 h-full flex flex-col justify-center" style={{ paddingLeft: u(110), paddingRight: u(60) }}>
+                    <div className="flex items-center" style={{ height: u(89) }}>
+                      {/* Bee mark from the site logo, cropped and rendered white */}
+                      <div className="relative overflow-hidden shrink-0" style={{ width: u(85), height: u(80.75) }}>
+                        <Image src="/images/logo.png" alt="" width={447} height={114} className="max-w-none w-auto brightness-0 invert" style={{ height: u(80.75) }} />
+                      </div>
+                      <span className="w-px h-full bg-white/60 shrink-0" style={{ marginLeft: u(30.5), marginRight: u(32.9) }} />
+                      {brand.logoUrl && <BrandLogo src={brand.logoUrl} name={brand.name} />}
+                    </div>
+                    <h3 className="font-display font-bold italic text-white whitespace-nowrap"
+                      style={{ fontSize: `max(34px, ${u(72)})`, lineHeight: `max(40px, ${u(80)})`, marginTop: u(24) }}>{brand.name}</h3>
+                    <p className="font-medium text-white"
+                      style={{ fontSize: `max(15px, ${u(24)})`, lineHeight: `max(22px, ${u(34)})`, maxWidth: `max(300px, ${u(580)})`, marginTop: u(22.6) }}>
+                      {cms(BRANDS_CMS_SECTION, key("description"), defs.description)}
+                    </p>
+                    <Link href={storeHref}
+                      className="self-start flex items-center justify-center bg-white text-[#1B70EB] font-medium transition-transform hover:-translate-y-0.5"
+                      style={{
+                        width: `max(150px, ${u(247.21)})`, height: `max(44px, ${u(68.41)})`, borderRadius: `max(10px, ${u(14.8)})`,
+                        fontSize: `max(15px, ${u(21)})`, gap: `max(8px, ${u(10)})`, marginTop: `max(28px, ${u(50.4)})`,
+                        boxShadow: `0 ${u(10)} ${u(30)} rgba(27,112,235,0.45)`,
+                      }}>
+                      <svg style={{ width: `max(18px, ${u(22)})`, height: `max(18px, ${u(22)})` }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" /><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                      </svg>
+                      {cms(BRANDS_CMS_SECTION, "ctaText", BRANDS_DEFAULT_CTA)}
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Brand products */}
+                <div className="flex overflow-x-auto px-4 py-10 lg:p-0 lg:overflow-visible lg:absolute lg:left-[calc(960*var(--u))] lg:top-[calc(165*var(--u))]"
+                  style={{ gap: c(20) }}>
+                  {products.map(p => <BrandProductCard key={p.id} p={p} />)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {count > 1 && (
+          <div className="absolute left-1/2 -translate-x-1/2 flex gap-2 z-10" style={{ bottom: `max(12px, ${u(40)})` }}>
+            {slides.map(({ brand }, i) => (
+              <button key={brand.id} onClick={() => setIdx(i)} aria-label={`Show ${brand.name}`}
+                className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-white" : "w-2 bg-white/50 hover:bg-white/80"}`} />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ─── Category Card ────────────────────────────────────────────────────────────
 function CategoryCard({ id, name, img }: { id?: string; name: string; img: string }) {
   return (
@@ -317,6 +461,7 @@ export default function Home() {
   const [reviewIdx, setReviewIdx] = useState(0);
   const [featuredProducts, setFeaturedProducts] = useState<DbProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<DbProduct[]>([]);
+  const [brandSlides, setBrandSlides] = useState<BrandSlide[]>([]);
   const [allCats, setAllCats] = useState<DbCategory[]>([]);
   const [realStats, setRealStats] = useState<{ productCount: number; vendorCount: number } | null>(null);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
@@ -382,6 +527,21 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/products?newArrival=true&brandedOnly=true&limit=8").then(r => r.json()).then(d => setNewArrivals(d.products ?? [])).catch(() => {}).finally(() => setLoadingArrivals(false));
+  }, []);
+
+  // Shop by Brands — each homepage brand with 3 of its own products (new arrivals first)
+  useEffect(() => {
+    const getJson = (url: string) => fetch(url).then(r => r.json());
+    getJson("/api/brands?homepage=true")
+      .then((d: { brands?: DbBrand[] }) => Promise.all((d.brands ?? []).map(async brand => {
+        const fresh: DbProduct[] = (await getJson(`/api/products?brandId=${brand.id}&newArrival=true&limit=3`)).products ?? [];
+        if (fresh.length >= 3) return { brand, products: fresh };
+        const any: DbProduct[] = (await getJson(`/api/products?brandId=${brand.id}&limit=6`)).products ?? [];
+        const products = [...fresh, ...any.filter(p => !fresh.some(f => f.id === p.id))].slice(0, 3);
+        return { brand, products };
+      })))
+      .then(slides => setBrandSlides(slides.filter(s => s.products.length > 0)))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -706,6 +866,7 @@ export default function Home() {
         </section>
       )}
 
+      {cmsLoaded && brandSlides.length > 0 && <ShopByBrands slides={brandSlides} cms={c} />}
 
       {!loadingFeatured && collectionSlides.length > 0 && (
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
